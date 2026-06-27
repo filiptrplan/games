@@ -24,6 +24,7 @@
   }
 
   *{box-sizing:border-box;margin:0;padding:0}
+  [hidden]{display:none!important}
   html,body{height:100%}
   body{
     background:
@@ -376,6 +377,11 @@
     <div class="prompt-actions">
       <button class="btn" id="startVote">Lock it in · start voting</button>
       <button class="btn ghost small" id="skipPrompt">Not feeling it · new prompt</button>
+      <button class="btn ghost small" id="writePrompt">Write my own prompt</button>
+      <div class="add-row" id="midPromptRow" hidden>
+        <input id="midPromptInput" type="text" placeholder="Type your question…" maxlength="140" autocomplete="off">
+        <button class="btn plus" id="midPromptUse" aria-label="Use this prompt">✓</button>
+      </div>
     </div>
   </section>
 
@@ -1076,7 +1082,7 @@ const DARES = [
 /* ============== STATE ============== */
 const state = {
   players:[], tier:"afterdark", pen:"drink", custom:[],
-  deck:[], used:[], current:null,
+  deck:[], used:[], current:null, currentCustom:false,
   round:0, order:[], voteIdx:0, votes:{}, sound:true
 };
 
@@ -1213,30 +1219,48 @@ $("startBtn").onclick=()=>{
 function nextPrompt(){
   state.round++;
   if(state.deck.length===0){ state.deck=shuffle(srcFor(state.tier)); state.used=[]; }
-  state.current=state.deck.pop(); state.used.push(state.current);
+  state.current=state.deck.pop(); state.currentCustom=false; state.used.push(state.current);
   renderPrompt();
   show("prompt");
 }
 function promptHtml(raw){
-  if(state.tier==="custom"){ return escapeHtml(raw); }
+  if(state.currentCustom || state.tier==="custom"){ return escapeHtml(raw); }
   if(NO_LEAD.has(state.tier)){
     return `<span class="lead">Who…</span>${escapeHtml(raw)}`;
   }
   return `<span class="lead">Who's most likely to…</span>${escapeHtml(raw)}`;
 }
 function plainPrompt(raw){
-  if(state.tier==="custom"){ return raw; }
+  if(state.currentCustom || state.tier==="custom"){ return raw; }
   return (NO_LEAD.has(state.tier) ? "Who " : "Who's most likely to ") + raw + "?";
 }
 function renderPrompt(){
   $("roundLabel").textContent="Round "+String(state.round).padStart(2,"0");
   $("tierPill").textContent=TIER_META[state.tier].label;
   $("promptText").innerHTML=promptHtml(state.current);
+  $("midPromptRow").hidden=true;
 }
+$("writePrompt").onclick=()=>{
+  $("midPromptRow").hidden=false;
+  $("midPromptInput").focus();
+  sTap();
+};
+function useMidPrompt(){
+  const inp=$("midPromptInput");
+  const v=inp.value.trim().replace(/\s+/g," ");
+  if(!v) return;
+  state.current=v;
+  state.currentCustom=true;
+  inp.value="";
+  renderPrompt();
+  sTap();
+}
+$("midPromptUse").onclick=useMidPrompt;
+$("midPromptInput").addEventListener("keydown",e=>{if(e.key==="Enter")useMidPrompt()});
 $("skipPrompt").onclick=()=>{
   sTap();
   if(state.deck.length===0){state.deck=shuffle(srcFor(state.tier));state.used=[]}
-  state.current=state.deck.pop(); state.used.push(state.current);
+  state.current=state.deck.pop(); state.currentCustom=false; state.used.push(state.current);
   renderPrompt();
 };
 $("startVote").onclick=()=>{
