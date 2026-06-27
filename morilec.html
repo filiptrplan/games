@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="sl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Morilec</title>
+  <meta name="description" content="Pass-the-phone vloge in Game Master zapiski za Mafijo.">
+  <style>
+    :root{--bg:#100d13;--card:#1b1720;--fg:#fff7ed;--muted:#b9a8a0;--line:#3a2f36;--red:#d72638;--gold:#f5b14c;--green:#46c27a}
+    *{box-sizing:border-box}[hidden]{display:none!important}
+    body{margin:0;min-height:100dvh;background:radial-gradient(circle at 50% -10%,#4b101b,transparent 45%),linear-gradient(160deg,#17111b,#08070a);color:var(--fg);font:16px/1.45 system-ui,-apple-system,Segoe UI,sans-serif}
+    main{width:min(560px,calc(100% - 28px));margin:0 auto;padding:max(24px,env(safe-area-inset-top)) 0 max(28px,env(safe-area-inset-bottom))}
+    h1{font-size:clamp(3.7rem,16vw,6rem);line-height:.85;margin:8px 0 18px;text-align:center;letter-spacing:-.08em;text-shadow:0 8px 0 #0005;color:#fff0d6}
+    h2{font-size:2rem;line-height:1;margin:0 0 12px}p{color:var(--muted);margin:0 0 16px}.kicker{color:var(--gold);font-size:.74rem;text-transform:uppercase;letter-spacing:.18em;font-weight:800;margin-bottom:8px}
+    .card{background:linear-gradient(160deg,#241d28,#141118);border:1px solid var(--line);border-radius:28px;padding:22px;box-shadow:0 24px 80px -34px #000}.list{display:grid;gap:12px}.row{display:flex;gap:10px}.row>*{flex:1}
+    input,select{width:100%;border:1px solid var(--line);border-radius:14px;padding:13px 14px;background:#0f0d12;color:var(--fg);font:600 1rem system-ui}input::placeholder{color:#806f75}input:focus,select:focus{outline:2px solid #f5b14c66;border-color:var(--gold)}
+    button{border:0;border-radius:14px;padding:14px 16px;background:linear-gradient(135deg,var(--gold),var(--red));color:#1a080b;font-weight:900;text-transform:uppercase;letter-spacing:.08em;cursor:pointer}button.secondary{background:#0000;color:var(--fg);box-shadow:inset 0 0 0 1px var(--line)}button.good{background:linear-gradient(135deg,var(--green),#1d7d4f);color:#06120b}button:disabled{opacity:.4;cursor:not-allowed}.icon{flex:0 0 42px;padding:0;color:var(--fg);background:#ffffff12}.actions{display:grid;gap:10px;margin-top:16px}
+    .pill{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-radius:16px;background:#fff1;color:#fff}.pill b{color:#fff}.muted{color:var(--muted)}.role{font-size:clamp(3rem,14vw,5rem);line-height:.9;text-align:center;margin:26px 0;color:#fff0d6}.big{font-size:1.25rem;color:#fff}.grid{display:grid;gap:12px}.target{display:grid;grid-template-columns:1fr;gap:8px;padding:12px;border:1px solid var(--line);border-radius:16px;background:#0002}.target label{color:var(--gold);font-weight:800}.danger{color:#ff8e8e}
+    @media(max-width:520px){.row{flex-direction:column}.pill .row{flex-direction:row}.card{border-radius:24px;padding:19px}}
+  </style>
+</head>
+<body>
+  <main id="app"></main>
+  <script>
+    const $ = (s) => document.querySelector(s);
+    const esc = (s) => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+    const shuffle = (a) => { a=[...a]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; };
+
+    const state = {
+      screen:'setup', reveal:0, hidden:true,
+      players:['','','','','',''],
+      roles:[{name:'Morilec', count:1},{name:'Detektiv', count:1},{name:'Zdravnik', count:1}],
+      assignments:[], notes:{}
+    };
+
+    const realPlayers = () => state.players.map(x=>x.trim()).filter(Boolean);
+    const roleDeck = () => state.roles.flatMap(r => Array(Math.max(0, Math.floor(+r.count || 0))).fill(r.name));
+    const uniqueRoles = () => [...new Set(state.assignments.map(a => a.role).filter(r => r !== 'Kmet'))];
+
+    function start(){
+      const players = realPlayers(), deck = roleDeck().filter(Boolean);
+      const farmers = players.length - deck.length;
+      if (players.length < 3 || farmers < 0) return alert('Rabiš vsaj 3 igralce in ne več vlog kot igralcev.');
+      const roles = shuffle([...deck, ...Array(farmers).fill('Kmet')]);
+      state.assignments = shuffle(players).map((player, i) => ({player, role: roles[i]}));
+      state.notes = {};
+      state.reveal = 0;
+      state.hidden = true;
+      state.screen = 'reveal';
+      render();
+    }
+
+    function renderSetup(){
+      const playerCount = realPlayers().length, roles = roleDeck().filter(Boolean).length, farmers = playerCount - roles;
+      return `<div class="kicker">Mafija zapiski</div><h1>Morilec</h1><div class="card list"><h2>Nastavitev</h2><p>Vpiši igralce in vloge. Preostali so kmetje.</p>
+        <label>Igralci</label>${state.players.map((p,i)=>`<div class="row"><input value="${esc(p)}" placeholder="Igralec ${i+1}" oninput="app.player(${i},this.value)"><button class="icon" onclick="app.rmPlayer(${i})">×</button></div>`).join('')}
+        <button class="secondary" onclick="app.addPlayer()">+ igralec</button>
+        <label>Vloge</label>${state.roles.map((r,i)=>`<div class="row"><input value="${esc(r.name)}" placeholder="Vloga" oninput="app.roleName(${i},this.value)"><input type="number" min="0" value="${r.count}" oninput="app.roleCount(${i},this.value)"><button class="icon" onclick="app.rmRole(${i})">×</button></div>`).join('')}
+        <button class="secondary" onclick="app.addRole()">+ vloga</button>
+        <div class="pill"><span>Igralci: <b>${playerCount}</b></span><span>Vloge: <b>${roles}</b></span><span>Kmetje: <b class="${farmers<0?'danger':''}">${farmers}</b></span></div>
+        <button onclick="app.start()">Razdeli vloge</button></div>`;
+    }
+
+    function renderReveal(){
+      const a = state.assignments[state.reveal];
+      if (!a) return `<div class="card"><h2>Vloge razdeljene</h2><p>Telefon gre zdaj Game Masterju.</p><button onclick="app.gm()">Odpri GM vmesnik</button></div>`;
+      return `<div class="card"><div class="kicker">${state.reveal+1}/${state.assignments.length}</div><h2>${esc(a.player)}</h2><p>Podaj telefon tej osebi. Najprej skrije, potem pogleda.</p>${state.hidden ? `<button onclick="app.show()">Pokaži vlogo</button>` : `<div class="role">${esc(a.role)}</div><button class="good" onclick="app.next()">Skrij in podaj naprej</button>`}</div>`;
+    }
+
+    function renderGm(){
+      const players = state.assignments.map(a => a.player);
+      return `<div class="card"><div class="kicker">Game Master</div><h2>Zapiski runde</h2><p>Označi, koga je katera vloga izbrala. Pravila so vaša.</p><div class="grid">${uniqueRoles().map((role,i) => `<div class="target"><label>${esc(role)}</label><select onchange="app.note(${i},this.value)"><option value="">— nihče / še ne vem —</option>${players.map(p=>`<option ${state.notes[role]===p?'selected':''}>${esc(p)}</option>`).join('')}</select></div>`).join('')}</div><div class="actions"><button class="secondary" onclick="app.resetNotes()">Resetiraj zapiske</button><button class="secondary" onclick="app.revealAll()">Pokaži vse vloge</button><button onclick="location.reload()">Nova igra</button></div></div>`;
+    }
+
+    function renderAll(){
+      return `<div class="card"><h2>Vse vloge</h2><div class="list">${state.assignments.map(a=>`<div class="pill"><span>${esc(a.player)}</span><b>${esc(a.role)}</b></div>`).join('')}</div><div class="actions"><button onclick="app.gm()">Nazaj na GM</button></div></div>`;
+    }
+
+    function render(){ $('#app').innerHTML = state.screen === 'setup' ? renderSetup() : state.screen === 'reveal' ? renderReveal() : state.screen === 'all' ? renderAll() : renderGm(); }
+    window.app = {
+      player:(i,v)=>state.players[i]=v,
+      addPlayer:()=>{state.players.push('');render()}, rmPlayer:(i)=>{state.players.splice(i,1);render()},
+      roleName:(i,v)=>state.roles[i].name=v, roleCount:(i,v)=>state.roles[i].count=v,
+      addRole:()=>{state.roles.push({name:'',count:1});render()}, rmRole:(i)=>{state.roles.splice(i,1);render()},
+      start, show:()=>{state.hidden=false;render()}, next:()=>{state.reveal++;state.hidden=true;render()}, gm:()=>{state.screen='gm';render()},
+      note:(i,player)=>state.notes[uniqueRoles()[i]]=player, resetNotes:()=>{state.notes={};render()}, revealAll:()=>{state.screen='all';render()}
+    };
+    render();
+  </script>
+</body>
+</html>
