@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scopa — Scorekeeper</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,600;0,700;0,900;1,600;1,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --felt-dark:#102e24;
+  --felt:#1c4a38;
+  --felt-light:#265a45;
+  --cream:#f4ead2;
+  --cream-dim:#d9caa3;
+  --ink:#16231a;
+  --gold:#c9a44c;
+  --gold-bright:#e2bf72;
+  --denari:#c9a44c;
+  --coppe:#a8404f;
+  --spade:#6486a3;
+  --bastoni:#7d9a55;
+  --warn:#c9603a;
+  --ok:#7d9a55;
+  --line:rgba(244,234,210,0.16);
+  --font-display:'Fraunces',Georgia,serif;
+  --font-body:'Inter',system-ui,-apple-system,sans-serif;
+  --font-mono:'IBM Plex Mono','Courier New',monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;
+  min-height:100vh;
+  font-family:var(--font-body);
+  color:var(--cream);
+  background:
+    radial-gradient(ellipse 140% 90% at 50% -10%, var(--felt) 0%, var(--felt-dark) 65%),
+    repeating-linear-gradient(45deg, rgba(255,255,255,0.015) 0px, rgba(255,255,255,0.015) 1px, transparent 1px, transparent 5px);
+  background-attachment:fixed;
+  line-height:1.5;
+}
+@media (prefers-reduced-motion: reduce){
+  *{animation:none!important;transition:none!important}
+}
+.wrap{max-width:920px;margin:0 auto;padding:1.1rem 1rem 2rem}
+a{color:inherit}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit}
+:focus-visible{outline:2px solid var(--gold-bright);outline-offset:2px}
+
+/* ---------- header ---------- */
+.top{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.8rem;flex-wrap:wrap}
+.brand h1{
+  font-family:var(--font-display);font-weight:900;font-style:italic;
+  font-size:clamp(1.7rem,5vw,2.4rem);letter-spacing:-.01em;margin:0;color:var(--gold-bright);
+  text-shadow:0 2px 0 rgba(0,0,0,.25);
+}
+.brand .tag{
+  font-family:var(--font-body);font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--cream-dim);margin-top:.15rem;
+}
+.top-actions{display:flex;gap:.5rem;align-items:center;flex-wrap:wrap}
+
+/* ---------- buttons ---------- */
+.btn{
+  font-family:var(--font-body);font-weight:600;font-size:.85rem;border-radius:8px;
+  padding:.6rem 1.1rem;border:1px solid transparent;transition:transform .12s ease, background .12s ease;
+}
+.btn:active{transform:translateY(1px)}
+.btn-primary{background:var(--gold-bright);color:var(--ink);border-color:var(--gold-bright)}
+.btn-primary:hover{background:#eccb87}
+.btn-ghost{background:transparent;color:var(--cream);border-color:var(--line)}
+.btn-ghost:hover{background:rgba(244,234,210,0.08)}
+.btn-danger{background:transparent;color:#e6a58f;border-color:rgba(230,165,143,.35)}
+.btn-danger:hover{background:rgba(230,165,143,.1)}
+.btn-sm{padding:.4rem .75rem;font-size:.78rem}
+.btn-block{width:100%}
+
+/* ---------- setup screen ---------- */
+.setup-screen{max-width:480px;margin:3vh auto 0;text-align:center}
+.setup-card{
+  background:var(--cream);color:var(--ink);border-radius:16px;padding:1.8rem 1.5rem;
+  margin-top:1.6rem;text-align:left;box-shadow:0 20px 50px rgba(0,0,0,.35);
+}
+.setup-card label{
+  display:block;font-family:var(--font-body);font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;
+  color:#6b5f42;font-weight:700;margin:1.1rem 0 .5rem;
+}
+.setup-card label:first-child{margin-top:0}
+.count-btns,.target-btns{display:flex;gap:.5rem}
+.pill-btn{
+  flex:1;padding:.55rem 0;border-radius:8px;border:1.5px solid #d9caa3;background:transparent;
+  color:var(--ink);font-weight:700;font-family:var(--font-mono);font-size:.95rem;
+}
+.pill-btn.active{background:var(--ink);border-color:var(--ink);color:var(--gold-bright)}
+.name-inputs{display:flex;flex-direction:column;gap:.5rem}
+.text-input{
+  width:100%;padding:.6rem .7rem;border-radius:7px;border:1.5px solid #d9caa3;background:#fffdf7;
+  color:var(--ink);font-size:.95rem;
+}
+.text-input:focus-visible{outline:2px solid var(--felt)}
+.setup-card .btn-primary{margin-top:1.5rem}
+
+/* ---------- winner banner ---------- */
+.banner{
+  border-radius:10px;padding:.6rem .9rem;margin-bottom:.7rem;font-family:var(--font-body);
+  display:flex;align-items:center;gap:.6rem;font-weight:600;font-size:.85rem;
+}
+.banner-win{background:var(--gold-bright);color:var(--ink)}
+.banner-tie{background:var(--coppe);color:var(--cream)}
+.banner .em{font-size:1.3rem}
+
+/* ---------- scoreboard ---------- */
+.scoreboard{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.5rem;margin-bottom:.7rem;
+}
+.player-card{
+  position:relative;background:var(--cream);color:var(--ink);border-radius:10px;padding:.55rem .65rem .5rem;
+  overflow:hidden;box-shadow:0 4px 14px rgba(0,0,0,.22);
+}
+.player-card .accent{position:absolute;top:0;left:0;right:0;height:4px}
+.player-card .watermark{position:absolute;right:-.3rem;bottom:-.4rem;width:38px;height:38px;opacity:.09}
+.player-card .name-row{display:flex;align-items:center;gap:.3rem;margin-bottom:.1rem}
+.player-card .suit-icon{width:13px;height:13px;flex-shrink:0}
+.player-card .name{
+  font-family:var(--font-body);font-weight:700;font-size:.76rem;letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.player-card .total{
+  font-family:var(--font-mono);font-weight:700;font-size:1.6rem;line-height:1;letter-spacing:-.02em;
+}
+.player-card .target-line{font-size:.6rem;color:#6b5f42;margin-top:.05rem}
+.progress-track{height:4px;border-radius:2px;background:#e4d6b3;margin:.3rem 0 .35rem;overflow:hidden}
+.progress-fill{height:100%;border-radius:2px;background:var(--ink)}
+.stat-chips{display:flex;flex-wrap:wrap;gap:.2rem}
+.chip{
+  font-family:var(--font-mono);font-size:.6rem;font-weight:600;background:rgba(22,35,26,.08);
+  border-radius:4px;padding:.1rem .3rem;display:flex;align-items:center;gap:.2rem;color:#3a3220;
+}
+.chip svg{width:8px;height:8px}
+
+/* ---------- games panel ---------- */
+.games-panel{
+  display:flex;flex-direction:column;gap:.35rem;background:rgba(244,234,210,0.06);
+  border:1px solid var(--line);border-radius:10px;padding:.5rem;margin-bottom:.7rem;
+}
+.game-row{
+  display:flex;align-items:center;justify-content:space-between;gap:.5rem;
+  border-radius:7px;padding:.4rem .55rem;background:rgba(244,234,210,0.05);
+}
+.game-row.active{background:rgba(226,191,114,0.16);border:1px solid rgba(226,191,114,.4)}
+.game-row-main{flex:1;min-width:0;cursor:pointer}
+.game-row-label{font-size:.8rem;font-weight:700;color:var(--cream);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.game-row-tag{
+  font-family:var(--font-mono);font-size:.58rem;font-weight:700;color:var(--gold-bright);
+  border:1px solid var(--gold-bright);border-radius:4px;padding:.02rem .3rem;margin-left:.3rem;
+}
+.game-row-meta{font-family:var(--font-mono);font-size:.65rem;color:var(--cream-dim);margin-top:.1rem}
+
+/* ---------- add round toggle ---------- */
+.round-toggle-row{margin-bottom:1.2rem}
+
+/* ---------- round form ---------- */
+.round-form{
+  background:var(--cream);color:var(--ink);border-radius:12px;padding:.75rem .8rem;margin-bottom:.7rem;
+  box-shadow:0 4px 14px rgba(0,0,0,.22);
+}
+.round-form h3{
+  font-family:var(--font-display);font-weight:700;font-size:1.05rem;margin:0;
+}
+.round-form .sub{font-size:.7rem;color:#6b5f42;margin-bottom:.5rem}
+.input-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(195px,1fr));gap:.4rem;margin-bottom:.5rem}
+.input-card{border-radius:8px;border:1.5px solid #e4d6b3;padding:.45rem .5rem .4rem;background:#fffdf7}
+.input-card .accent-bar{height:3px;border-radius:2px;margin:-0.45rem -0.5rem .35rem;}
+.input-card .pname{
+  font-family:var(--font-body);font-weight:700;font-size:.78rem;display:flex;align-items:center;gap:.3rem;
+  margin-bottom:.3rem;
+}
+.input-card .pname svg{width:12px;height:12px}
+.field-row{display:flex;gap:.3rem;margin-bottom:.3rem}
+.field{flex:1;display:flex;flex-direction:column;gap:.1rem;min-width:0}
+.field label{font-size:.56rem;letter-spacing:.04em;text-transform:uppercase;color:#8a7c58;font-weight:700}
+.num-input{
+  width:100%;padding:.28rem .3rem;border-radius:5px;border:1.5px solid #e4d6b3;background:#fff;
+  font-family:var(--font-mono);font-size:.82rem;color:var(--ink);
+}
+.sette-row{display:flex;align-items:center;gap:.35rem;margin-bottom:.35rem}
+.sette-row label{font-size:.7rem;font-weight:600;display:flex;align-items:center;gap:.3rem;cursor:pointer}
+.sette-row input[type=checkbox]{width:14px;height:14px;accent-color:var(--gold)}
+.prim-label{font-size:.56rem;letter-spacing:.04em;text-transform:uppercase;color:#8a7c58;font-weight:700;margin-bottom:.2rem}
+.prim-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.25rem}
+.prim-cell{display:flex;flex-direction:column;align-items:center;gap:.12rem}
+.prim-cell svg{width:11px;height:11px}
+.prim-select{
+  width:100%;padding:.2rem .1rem;border-radius:4px;border:1.5px solid #e4d6b3;background:#fff;
+  font-family:var(--font-mono);font-size:.68rem;color:var(--ink);text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.prim-sub{font-family:var(--font-mono);font-size:.62rem;color:#6b5f42;margin-top:.3rem}
+.prim-sub.incomplete{color:var(--warn)}
+.check-row{
+  display:flex;justify-content:space-between;align-items:center;font-family:var(--font-mono);
+  font-size:.72rem;padding:.3rem .1rem;border-top:1px dashed #e4d6b3;margin-bottom:.5rem;
+}
+.check-row .ok{color:var(--ok);font-weight:700}
+.check-row .warn{color:var(--warn);font-weight:700}
+.form-actions{display:flex;gap:.5rem}
+
+/* ---------- history ---------- */
+.section-head{
+  display:flex;align-items:center;justify-content:space-between;margin:1rem 0 .4rem;
+}
+.section-head h2{
+  font-family:var(--font-display);font-weight:700;font-size:1.05rem;margin:0;color:var(--gold-bright);
+}
+.history-list{display:flex;flex-direction:column;gap:.35rem}
+.history-round{
+  background:rgba(244,234,210,0.06);border:1px solid var(--line);border-radius:8px;padding:.45rem .6rem;
+}
+.history-round .h-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:.25rem}
+.h-round-no{font-family:var(--font-mono);font-weight:700;color:var(--gold-bright);font-size:.76rem}
+.h-lines{display:flex;flex-direction:column;gap:.15rem}
+.h-line{
+  display:flex;justify-content:space-between;align-items:center;font-size:.74rem;
+  padding:.08rem 0;
+}
+.h-line .badges{display:flex;gap:.3rem;flex-wrap:wrap}
+.badge{
+  font-size:.62rem;font-family:var(--font-mono);background:rgba(244,234,210,0.12);
+  border-radius:4px;padding:.1rem .35rem;color:var(--cream-dim);
+}
+.h-line .pts{font-family:var(--font-mono);font-weight:700;color:var(--gold-bright)}
+.confirm-inline{
+  display:flex;align-items:center;gap:.5rem;font-size:.78rem;background:rgba(230,165,143,.12);
+  border-radius:7px;padding:.4rem .6rem;
+}
+.empty-note{color:var(--cream-dim);font-size:.85rem;font-style:italic;padding:1rem 0}
+
+/* ---------- reference panel ---------- */
+.ref-panel{
+  background:rgba(244,234,210,0.06);border:1px solid var(--line);border-radius:8px;
+  padding:.6rem .7rem;margin-top:.5rem;font-size:.76rem;color:var(--cream-dim);
+}
+.ref-panel h4{font-family:var(--font-body);color:var(--cream);font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;margin:0 0 .3rem}
+.ref-panel .cat{margin-bottom:.3rem}
+.ref-panel .cat b{color:var(--cream)}
+.ref-table{width:100%;border-collapse:collapse;margin-top:.3rem;font-family:var(--font-mono);font-size:.72rem}
+.ref-table td{padding:.12rem .35rem;border-bottom:1px dashed var(--line)}
+
+footer{text-align:center;font-size:.65rem;color:var(--cream-dim);margin-top:1rem;opacity:.7}
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+/* ============ constants ============ */
+const PRIMIERA_VALUES = {'2':12,'3':13,'4':14,'5':15,'6':18,'7':21,'A':16,'F':10,'C':10,'R':10};
+const PRIMIERA_LABEL = {'2':'2','3':'3','4':'4','5':'5','6':'6','7':'7','A':'Ace','F':'Jack','C':'Knight','R':'King'};
+const PRIMIERA_OPTIONS = ['none','2','3','4','5','6','7','A','F','C','R'];
+const SUIT_NAMES = ['Denari','Coppe','Spade','Bastoni'];
+const SUIT_VARS  = ['var(--denari)','var(--coppe)','var(--spade)','var(--bastoni)'];
+
+function iconDenari(){return '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="2.6" fill="currentColor"/></svg>';}
+function iconCoppe(){return '<svg viewBox="0 0 24 24"><path d="M5 4h14l-1.6 8.2a5.4 5.4 0 0 1-10.8 0L5 4z" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><line x1="12" y1="17.5" x2="12" y2="21" stroke="currentColor" stroke-width="2.2"/><line x1="8.5" y1="21" x2="15.5" y2="21" stroke="currentColor" stroke-width="2.2"/></svg>';}
+function iconSpade(){return '<svg viewBox="0 0 24 24"><line x1="12" y1="2" x2="12" y2="15" stroke="currentColor" stroke-width="2.2"/><line x1="7" y1="9" x2="17" y2="9" stroke="currentColor" stroke-width="2.2"/><rect x="10" y="15" width="4" height="6" rx="1" fill="currentColor"/></svg>';}
+function iconBastoni(){return '<svg viewBox="0 0 24 24"><rect x="3" y="10.5" width="18" height="3" rx="1.5" fill="currentColor" transform="rotate(-28 12 12)"/></svg>';}
+const SUIT_ICON_FN = [iconDenari, iconCoppe, iconSpade, iconBastoni];
+
+function suitIcon(i, extraClass){
+  return '<span class="' + (extraClass||'suit-icon') + '" style="color:' + SUIT_VARS[i % 4] + '">' + SUIT_ICON_FN[i % 4]() + '</span>';
+}
+
+/* ============ state ============ */
+let appState = {
+  view: 'setup',
+  gameId: null,
+  gamesIndex: [],
+  players: ['', ''],
+  target: 11,
+  rounds: [],
+  setupCount: 2,
+  formOpen: true,
+  showGamesPanel: false,
+  showRef: false,
+  confirmDeleteIdx: null,
+  confirmDeleteGameId: null
+};
+const hasStorage = (typeof window.storage !== 'undefined');
+
+function escapeHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function generateId(){
+  return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function formatDate(ts){
+  if (!ts) return '';
+  const d = new Date(ts);
+  return d.toLocaleDateString(undefined, {month:'short', day:'numeric'}) + ' · ' + d.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+}
+
+/* ============ storage: games index ============ */
+async function loadIndex(){
+  if (!hasStorage) return [];
+  try{
+    const res = await window.storage.get('scopa:index', false);
+    if (res && res.value){
+      const arr = JSON.parse(res.value);
+      if (Array.isArray(arr)) return arr;
+    }
+  }catch(e){ /* no index yet */ }
+  return [];
+}
+
+async function saveIndex(){
+  if (!hasStorage) return;
+  try{ await window.storage.set('scopa:index', JSON.stringify(appState.gamesIndex), false); }
+  catch(e){ console.error('Scopa: index save failed', e); }
+}
+
+async function loadGameData(id){
+  if (!hasStorage) return null;
+  try{
+    const res = await window.storage.get('scopa:game:' + id, false);
+    if (res && res.value) return JSON.parse(res.value);
+  }catch(e){ /* missing */ }
+  return null;
+}
+
+async function saveGameData(id, data){
+  if (!hasStorage) return;
+  try{ await window.storage.set('scopa:game:' + id, JSON.stringify(data), false); }
+  catch(e){ console.error('Scopa: game save failed', e); }
+}
+
+async function setActiveId(id){
+  if (!hasStorage) return;
+  try{ await window.storage.set('scopa:active', id, false); }catch(e){ /* ignore */ }
+}
+
+/* ============ storage: legacy migration (pre-multi-game save) ============ */
+async function migrateLegacySave(){
+  if (!hasStorage) return;
+  try{
+    const legacy = await window.storage.get('scopa-state', false);
+    if (legacy && legacy.value){
+      const data = JSON.parse(legacy.value);
+      if (data && Array.isArray(data.players) && data.players.length >= 2){
+        const id = generateId();
+        const now = Date.now();
+        appState.gamesIndex.push({
+          id: id, label: data.players.join(' vs '), players: data.players,
+          target: data.target || 11, roundCount: (data.rounds||[]).length,
+          createdAt: now, updatedAt: now
+        });
+        await saveIndex();
+        await saveGameData(id, { players: data.players, target: data.target || 11, rounds: data.rounds || [] });
+        await setActiveId(id);
+      }
+      try{ await window.storage.delete('scopa-state', false); }catch(e){ /* ignore */ }
+    }
+  }catch(e){ /* nothing legacy to migrate */ }
+}
+
+/* ============ app init ============ */
+async function initApp(){
+  appState.gamesIndex = await loadIndex();
+  if (appState.gamesIndex.length === 0){
+    await migrateLegacySave();
+  }
+
+  if (appState.gamesIndex.length){
+    let activeId = null;
+    if (hasStorage){
+      try{
+        const a = await window.storage.get('scopa:active', false);
+        if (a && a.value) activeId = a.value;
+      }catch(e){ /* none set */ }
+    }
+    let entry = appState.gamesIndex.find(function(g){ return g.id === activeId; });
+    if (!entry){
+      entry = appState.gamesIndex.slice().sort(function(a,b){ return b.updatedAt - a.updatedAt; })[0];
+    }
+    await switchToGame(entry.id, false);
+  } else {
+    appState.view = 'setup';
+  }
+  render();
+}
+
+async function switchToGame(id, doRender){
+  const data = await loadGameData(id);
+  if (data){
+    appState.gameId = id;
+    appState.players = data.players;
+    appState.target = data.target || 11;
+    appState.rounds = Array.isArray(data.rounds) ? data.rounds : [];
+    appState.view = 'game';
+    appState.showGamesPanel = false;
+    appState.confirmDeleteIdx = null;
+    await setActiveId(id);
+  }
+  if (doRender !== false) render();
+}
+
+async function saveState(){
+  if (!hasStorage || !appState.gameId) return;
+  try{
+    await saveGameData(appState.gameId, {
+      players: appState.players, target: appState.target, rounds: appState.rounds
+    });
+    const entry = appState.gamesIndex.find(function(g){ return g.id === appState.gameId; });
+    if (entry){
+      entry.updatedAt = Date.now();
+      entry.players = appState.players;
+      entry.target = appState.target;
+      entry.label = appState.players.join(' vs ');
+      entry.roundCount = appState.rounds.length;
+      await saveIndex();
+    }
+  }catch(e){ console.error('Scopa: save failed', e); }
+}
+
+async function deleteGame(id){
+  if (hasStorage){
+    try{ await window.storage.delete('scopa:game:' + id, false); }catch(e){ /* already gone */ }
+  }
+  appState.gamesIndex = appState.gamesIndex.filter(function(g){ return g.id !== id; });
+  await saveIndex();
+  appState.confirmDeleteGameId = null;
+  if (appState.gameId === id){
+    if (appState.gamesIndex.length){
+      const next = appState.gamesIndex.slice().sort(function(a,b){ return b.updatedAt - a.updatedAt; })[0];
+      await switchToGame(next.id, false);
+    } else {
+      appState.gameId = null;
+      appState.players = ['', ''];
+      appState.target = 11;
+      appState.rounds = [];
+      appState.setupCount = 2;
+      appState.view = 'setup';
+      if (hasStorage){ try{ await window.storage.delete('scopa:active', false); }catch(e){} }
+    }
+  }
+  render();
+}
+
+/* ============ scoring logic ============ */
+function uniqueMaxIndex(arr){
+  const max = Math.max.apply(null, arr);
+  const idxs = [];
+  arr.forEach(function(v,i){ if (v === max) idxs.push(i); });
+  return idxs.length === 1 ? idxs[0] : null;
+}
+
+function computeRound(round, n){
+  const carteWinner = uniqueMaxIndex(round.cardsCaptured);
+  const denariWinner = uniqueMaxIndex(round.denariCaptured);
+
+  const primieraTotals = round.primiera.map(function(sel){
+    const complete = sel.every(function(s){ return s && s !== 'none'; });
+    if (!complete) return null;
+    return sel.reduce(function(sum, s){ return sum + PRIMIERA_VALUES[s]; }, 0);
+  });
+  let primieraWinner = null;
+  const eligible = [];
+  primieraTotals.forEach(function(v,i){ if (v !== null) eligible.push({i:i, v:v}); });
+  if (eligible.length){
+    const maxV = Math.max.apply(null, eligible.map(function(e){ return e.v; }));
+    const top = eligible.filter(function(e){ return e.v === maxV; });
+    primieraWinner = top.length === 1 ? top[0].i : null;
+  }
+
+  const settebelloIdx = (typeof round.settebello === 'number') ? round.settebello : null;
+
+  const points = [];
+  for (let i = 0; i < n; i++){
+    let p = 0;
+    if (carteWinner === i) p += 1;
+    if (denariWinner === i) p += 1;
+    if (settebelloIdx === i) p += 1;
+    if (primieraWinner === i) p += 1;
+    p += (round.scopas[i] || 0);
+    points.push(p);
+  }
+  return { carteWinner, denariWinner, settebelloIdx, primieraWinner, primieraTotals, points };
+}
+
+function getStandings(){
+  const n = appState.players.length;
+  const totals = appState.players.map(function(){ return 0; });
+  const aggregates = appState.players.map(function(){ return { denariWins:0, scopas:0, settebello:0, primieraWins:0, carteWins:0 }; });
+  const computed = appState.rounds.map(function(round, idx){
+    const result = computeRound(round, n);
+    result.points.forEach(function(p,i){ totals[i] += p; });
+    aggregates.forEach(function(a,i){
+      if (result.carteWinner === i) a.carteWins++;
+      if (result.denariWinner === i) a.denariWins++;
+      if (result.settebelloIdx === i) a.settebello++;
+      if (result.primieraWinner === i) a.primieraWins++;
+      a.scopas += (round.scopas[i] || 0);
+    });
+    return { round: round, result: result };
+  });
+  return { totals: totals, aggregates: aggregates, computed: computed };
+}
+
+/* ============ render: setup ============ */
+function renderSetup(){
+  const names = appState.players;
+  const nameInputs = names.map(function(n,i){
+    return '<input type="text" class="text-input name-input" data-idx="' + i + '" placeholder="Player ' + (i+1) + '" value="' + escapeHtml(n) + '">';
+  }).join('');
+
+  return ''
+  + '<div class="setup-screen">'
+  + '  <h1 class="brand-title" style="font-family:var(--font-display);font-weight:900;font-style:italic;font-size:clamp(2.6rem,10vw,3.8rem);color:var(--gold-bright);margin:0;text-shadow:0 2px 0 rgba(0,0,0,.25)">Scopa</h1>'
+  + '  <p style="font-size:.78rem;letter-spacing:.14em;text-transform:uppercase;color:var(--cream-dim);margin:.3rem 0 0">Scorekeeper &amp; point calculator</p>'
+  + '  <div class="setup-card">'
+  + '    <label>Players</label>'
+  + '    <div class="count-btns">'
+  +        [2,3,4].map(function(c){ return '<button class="pill-btn' + (appState.setupCount===c?' active':'') + '" data-count="' + c + '">' + c + '</button>'; }).join('')
+  + '    </div>'
+  + '    <label>Names</label>'
+  + '    <div class="name-inputs">' + nameInputs + '</div>'
+  + '    <label>Playing to</label>'
+  + '    <div class="target-btns">'
+  +        [11,21].map(function(t){ return '<button class="pill-btn' + (appState.target===t?' active':'') + '" data-target="' + t + '">' + t + '</button>'; }).join('')
+  + '    </div>'
+  + '    <button id="start-game-btn" class="btn btn-primary btn-block">Start game →</button>'
+  + '  </div>'
+  + '</div>';
+}
+
+function attachSetupListeners(){
+  document.querySelectorAll('[data-count]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const c = parseInt(btn.getAttribute('data-count'));
+      const current = appState.players;
+      const next = [];
+      for (let i = 0; i < c; i++) next.push(current[i] || '');
+      appState.players = next;
+      appState.setupCount = c;
+      render();
+    });
+  });
+  document.querySelectorAll('[data-target]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      appState.target = parseInt(btn.getAttribute('data-target'));
+      render();
+    });
+  });
+  document.querySelectorAll('.name-input').forEach(function(inp){
+    inp.addEventListener('input', function(){
+      appState.players[parseInt(inp.getAttribute('data-idx'))] = inp.value;
+    });
+  });
+  document.getElementById('start-game-btn').addEventListener('click', async function(){
+    appState.players = appState.players.map(function(n,i){ return n.trim() || ('Player ' + (i+1)); });
+    const id = generateId();
+    const now = Date.now();
+    appState.gameId = id;
+    appState.rounds = [];
+    appState.view = 'game';
+    appState.gamesIndex.push({
+      id: id, label: appState.players.join(' vs '), players: appState.players,
+      target: appState.target, roundCount: 0, createdAt: now, updatedAt: now
+    });
+    await saveIndex();
+    await saveGameData(id, { players: appState.players, target: appState.target, rounds: [] });
+    await setActiveId(id);
+    render();
+  });
+}
+
+/* ============ render: game ============ */
+function renderWinnerBanner(totals){
+  const target = appState.target;
+  const maxTotal = Math.max.apply(null, totals);
+  if (maxTotal < target) return '';
+  const leaders = [];
+  totals.forEach(function(t,i){ if (t === maxTotal) leaders.push(i); });
+  if (leaders.length === 1){
+    return '<div class="banner banner-win"><span class="em">🏆</span> ' + escapeHtml(appState.players[leaders[0]]) + ' wins with ' + maxTotal + ' points.</div>';
+  }
+  return '<div class="banner banner-tie"><span class="em">⚖️</span> Tie at ' + maxTotal + ' between ' + leaders.map(function(i){ return escapeHtml(appState.players[i]); }).join(' &amp; ') + ' — play a decider hand.</div>';
+}
+
+function renderScoreboard(totals, aggregates){
+  const target = appState.target;
+  return '<div class="scoreboard">' + appState.players.map(function(name, i){
+    const pct = Math.max(0, Math.min(100, (totals[i] / target) * 100));
+    const a = aggregates[i];
+    const chips = [];
+    if (a.carteWins) chips.push('<span class="chip">✋ ' + a.carteWins + '</span>');
+    if (a.denariWins) chips.push('<span class="chip">' + suitIcon(0,'') + ' ' + a.denariWins + '</span>');
+    if (a.settebello) chips.push('<span class="chip">★ ' + a.settebello + '</span>');
+    if (a.primieraWins) chips.push('<span class="chip">♛ ' + a.primieraWins + '</span>');
+    if (a.scopas) chips.push('<span class="chip">🧹 ' + a.scopas + '</span>');
+    return ''
+    + '<div class="player-card">'
+    + '  <div class="accent" style="background:' + SUIT_VARS[i%4] + '"></div>'
+    + '  <div class="watermark" style="color:' + SUIT_VARS[i%4] + '">' + SUIT_ICON_FN[i%4]() + '</div>'
+    + '  <div class="name-row">' + suitIcon(i) + '<span class="name">' + escapeHtml(name) + '</span></div>'
+    + '  <div class="total">' + totals[i] + '</div>'
+    + '  <div class="target-line">of ' + target + ' to win</div>'
+    + '  <div class="progress-track"><div class="progress-fill" style="width:' + pct + '%;background:' + SUIT_VARS[i%4] + '"></div></div>'
+    + '  <div class="stat-chips">' + (chips.length ? chips.join('') : '<span class="chip" style="opacity:.5">no rounds yet</span>') + '</div>'
+    + '</div>';
+  }).join('') + '</div>';
+}
+
+function renderRoundForm(){
+  if (!appState.formOpen) return '';
+  const n = appState.players.length;
+  const cards = appState.players.map(function(name, i){
+    const primCells = SUIT_NAMES.map(function(sName, s){
+      const opts = PRIMIERA_OPTIONS.map(function(o){
+        const label = o === 'none' ? '—' : PRIMIERA_LABEL[o];
+        return '<option value="' + o + '">' + label + '</option>';
+      }).join('');
+      return '<div class="prim-cell">' + suitIcon(s) + '<select class="prim-select" id="prim-' + i + '-' + s + '">' + opts + '</select></div>';
+    }).join('');
+
+    return ''
+    + '<div class="input-card">'
+    + '  <div class="accent-bar" style="background:' + SUIT_VARS[i%4] + '"></div>'
+    + '  <div class="pname">' + suitIcon(i) + escapeHtml(name) + '</div>'
+    + '  <div class="field-row">'
+    + '    <div class="field"><label for="cards-' + i + '">Cards</label><input type="number" min="0" max="40" class="num-input" id="cards-' + i + '" value="0"></div>'
+    + '    <div class="field"><label for="denari-' + i + '">Denari</label><input type="number" min="0" max="10" class="num-input" id="denari-' + i + '" value="0"></div>'
+    + '    <div class="field"><label for="scopas-' + i + '">Scopas</label><input type="number" min="0" max="10" class="num-input" id="scopas-' + i + '" value="0"></div>'
+    + '  </div>'
+    + '  <div class="sette-row"><label for="sette-' + i + '"><input type="checkbox" id="sette-' + i + '"> Settebello</label></div>'
+    + '  <div class="prim-label">Primiera — best card captured per suit</div>'
+    + '  <div class="prim-grid">' + primCells + '</div>'
+    + '  <div class="prim-sub incomplete" id="prim-sub-' + i + '">needs all 4 suits to qualify</div>'
+    + '</div>';
+  }).join('');
+
+  return ''
+  + '<div class="round-form">'
+  + '  <h3>Round ' + (appState.rounds.length + 1) + '</h3>'
+  + '  <p class="sub">Enter what each player captured this hand. Points are calculated automatically.</p>'
+  + '  <div class="input-cards">' + cards + '</div>'
+  + '  <div class="check-row"><span>Cards captured total</span><span id="cards-sum-check" class="warn">0 / 40</span></div>'
+  + '  <div class="form-actions">'
+  + '    <button id="save-round-btn" class="btn btn-primary">Save round</button>'
+  + '    <button id="cancel-round-btn" class="btn btn-ghost">Clear fields</button>'
+  + '  </div>'
+  + '</div>';
+}
+
+function renderHistory(computed){
+  if (!computed.length){
+    return '<p class="empty-note">No rounds logged yet — play a hand, then add it above.</p>';
+  }
+  const rows = computed.slice().reverse().map(function(entry){
+    const idx = computed.indexOf(entry);
+    const r = entry.result;
+    const lines = appState.players.map(function(name, i){
+      const badges = [];
+      if (r.carteWinner === i) badges.push('<span class="badge">carte</span>');
+      if (r.denariWinner === i) badges.push('<span class="badge">denari</span>');
+      if (r.settebelloIdx === i) badges.push('<span class="badge">settebello</span>');
+      if (r.primieraWinner === i) badges.push('<span class="badge">primiera</span>');
+      if (entry.round.scopas[i]) badges.push('<span class="badge">' + entry.round.scopas[i] + ' scopa' + (entry.round.scopas[i]>1?'s':'') + '</span>');
+      return ''
+      + '<div class="h-line">'
+      + '  <span>' + escapeHtml(name) + '</span>'
+      + '  <span class="badges">' + badges.join('') + '</span>'
+      + '  <span class="pts">+' + r.points[i] + '</span>'
+      + '</div>';
+    }).join('');
+
+    const confirmBox = appState.confirmDeleteIdx === idx
+      ? '<div class="confirm-inline">Remove this round?'
+        + '<button class="btn btn-sm btn-danger" data-del-yes="' + idx + '">Yes</button>'
+        + '<button class="btn btn-sm btn-ghost" data-del-no="1">No</button></div>'
+      : '<button class="btn btn-sm btn-ghost" data-del-ask="' + idx + '">Remove</button>';
+
+    return ''
+    + '<div class="history-round">'
+    + '  <div class="h-top"><span class="h-round-no">Round ' + (idx+1) + '</span>' + confirmBox + '</div>'
+    + '  <div class="h-lines">' + lines + '</div>'
+    + '</div>';
+  }).join('');
+  return '<div class="history-list">' + rows + '</div>';
+}
+
+function renderReference(){
+  if (!appState.showRef) return '';
+  return ''
+  + '<div class="ref-panel">'
+  + '  <h4>Scoring reference</h4>'
+  + '  <div class="cat"><b>Carte</b> — most cards captured overall. 1 pt. Tie = no point.</div>'
+  + '  <div class="cat"><b>Denari</b> — most coin-suit cards captured. 1 pt. Tie = no point.</div>'
+  + '  <div class="cat"><b>Settebello</b> — holding the 7 of coins. 1 pt, automatic.</div>'
+  + '  <div class="cat"><b>Primiera</b> — best one-card-per-suit combo by rank value below. 1 pt. Needs a card in all 4 suits; tie = no point.</div>'
+  + '  <div class="cat"><b>Scopa</b> — 1 pt per sweep, awarded directly to whoever made it.</div>'
+  + '  <table class="ref-table"><tbody>'
+  +      '<tr><td>7</td><td>21</td><td>4</td><td>14</td></tr>'
+  +      '<tr><td>6</td><td>18</td><td>3</td><td>13</td></tr>'
+  +      '<tr><td>Ace</td><td>16</td><td>2</td><td>12</td></tr>'
+  +      '<tr><td>5</td><td>15</td><td>Jack/Knight/King</td><td>10</td></tr>'
+  + '  </tbody></table>'
+  + '</div>';
+}
+
+function renderGamesPanel(){
+  if (!appState.showGamesPanel) return '';
+  const sorted = appState.gamesIndex.slice().sort(function(a,b){ return b.updatedAt - a.updatedAt; });
+  const rows = sorted.map(function(g){
+    const isActive = g.id === appState.gameId;
+    const deleteBox = appState.confirmDeleteGameId === g.id
+      ? '<div class="confirm-inline">Delete this game?'
+        + '<button class="btn btn-sm btn-danger" data-delgame-yes="' + g.id + '">Yes</button>'
+        + '<button class="btn btn-sm btn-ghost" data-delgame-no="1">No</button></div>'
+      : '<button class="btn btn-sm btn-ghost" data-delgame-ask="' + g.id + '">Remove</button>';
+    return ''
+    + '<div class="game-row' + (isActive ? ' active' : '') + '">'
+    + '  <div class="game-row-main" data-switch-game="' + g.id + '">'
+    + '    <div class="game-row-label">' + escapeHtml(g.label) + (isActive ? ' <span class="game-row-tag">current</span>' : '') + '</div>'
+    + '    <div class="game-row-meta">' + (g.roundCount||0) + ' rounds · to ' + g.target + ' · ' + formatDate(g.updatedAt) + '</div>'
+    + '  </div>'
+    + '  ' + deleteBox
+    + '</div>';
+  }).join('');
+  return ''
+  + '<div class="games-panel">'
+  + (rows || '<p class="empty-note">No other games yet.</p>')
+  + '</div>';
+}
+
+function renderGame(){
+  const s = getStandings();
+  const target = appState.target;
+
+  return ''
+  + '<div class="top">'
+  + '  <div class="brand"><h1>Scopa</h1><div class="tag">First to ' + target + ' · ' + appState.players.length + ' players</div></div>'
+  + '  <div class="top-actions">'
+  + '    <button id="games-toggle-btn" class="btn btn-ghost btn-sm">' + (appState.showGamesPanel ? 'Hide games' : 'Games (' + appState.gamesIndex.length + ')') + '</button>'
+  + '    <button id="new-game-btn" class="btn btn-ghost btn-sm">+ New game</button>'
+  + '    <button id="ref-toggle-btn" class="btn btn-ghost btn-sm">' + (appState.showRef ? 'Hide' : 'Scoring guide') + '</button>'
+  + '  </div>'
+  + '</div>'
+  + renderGamesPanel()
+  + renderWinnerBanner(s.totals)
+  + renderScoreboard(s.totals, s.aggregates)
+  + renderRoundForm()
+  + renderReference()
+  + '<div class="section-head"><h2>Rounds played</h2></div>'
+  + renderHistory(s.computed)
+  + '<footer>Scopa · scores saved automatically on this device</footer>';
+}
+
+/* ============ form-only live updates (no full re-render) ============ */
+function attachFormListeners(){
+  const n = appState.players.length;
+
+  function updateCardsSum(){
+    let sum = 0;
+    for (let i = 0; i < n; i++){
+      sum += parseInt(document.getElementById('cards-' + i).value) || 0;
+    }
+    const el = document.getElementById('cards-sum-check');
+    el.textContent = sum + ' / 40';
+    el.className = (sum === 40) ? 'ok' : 'warn';
+  }
+
+  function updatePrimSub(i){
+    const sel = [];
+    for (let s = 0; s < 4; s++) sel.push(document.getElementById('prim-' + i + '-' + s).value);
+    const el = document.getElementById('prim-sub-' + i);
+    const complete = sel.every(function(v){ return v !== 'none'; });
+    if (!complete){
+      el.textContent = 'needs all 4 suits to qualify';
+      el.className = 'prim-sub incomplete';
+    } else {
+      const total = sel.reduce(function(sum, v){ return sum + PRIMIERA_VALUES[v]; }, 0);
+      el.textContent = 'primiera value: ' + total;
+      el.className = 'prim-sub';
+    }
+  }
+
+  for (let i = 0; i < n; i++){
+    document.getElementById('cards-' + i).addEventListener('input', updateCardsSum);
+    for (let s = 0; s < 4; s++){
+      document.getElementById('prim-' + i + '-' + s).addEventListener('change', function(idx){
+        return function(){ updatePrimSub(idx); };
+      }(i));
+    }
+    document.getElementById('sette-' + i).addEventListener('change', function(idx){
+      return function(){
+        if (document.getElementById('sette-' + idx).checked){
+          for (let j = 0; j < n; j++){
+            if (j !== idx) document.getElementById('sette-' + j).checked = false;
+          }
+        }
+      };
+    }(i));
+  }
+
+  document.getElementById('save-round-btn').addEventListener('click', function(){
+    const cardsCaptured = [], denariCaptured = [], scopas = [], primiera = [];
+    let settebello = null;
+    for (let i = 0; i < n; i++){
+      cardsCaptured.push(parseInt(document.getElementById('cards-' + i).value) || 0);
+      denariCaptured.push(parseInt(document.getElementById('denari-' + i).value) || 0);
+      scopas.push(parseInt(document.getElementById('scopas-' + i).value) || 0);
+      if (document.getElementById('sette-' + i).checked) settebello = i;
+      const sel = [];
+      for (let s = 0; s < 4; s++) sel.push(document.getElementById('prim-' + i + '-' + s).value);
+      primiera.push(sel);
+    }
+    appState.rounds.push({ cardsCaptured, denariCaptured, scopas, settebello, primiera });
+    saveState();
+    render();
+  });
+
+  document.getElementById('cancel-round-btn').addEventListener('click', function(){
+    render();
+  });
+}
+
+/* ============ game-level listeners ============ */
+function attachGameListeners(){
+  const addBtn = document.getElementById('add-round-btn');
+  if (addBtn) addBtn.addEventListener('click', function(){ appState.formOpen = true; render(); });
+
+  const refBtn = document.getElementById('ref-toggle-btn');
+  if (refBtn) refBtn.addEventListener('click', function(){ appState.showRef = !appState.showRef; render(); });
+
+  const gamesBtn = document.getElementById('games-toggle-btn');
+  if (gamesBtn) gamesBtn.addEventListener('click', function(){ appState.showGamesPanel = !appState.showGamesPanel; render(); });
+
+  const newBtn = document.getElementById('new-game-btn');
+  if (newBtn) newBtn.addEventListener('click', function(){
+    appState.view = 'setup';
+    appState.players = ['', ''];
+    appState.setupCount = 2;
+    appState.target = 11;
+    render();
+  });
+
+  document.querySelectorAll('[data-switch-game]').forEach(function(el){
+    el.addEventListener('click', function(){
+      switchToGame(el.getAttribute('data-switch-game'));
+    });
+  });
+  document.querySelectorAll('[data-delgame-ask]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      appState.confirmDeleteGameId = btn.getAttribute('data-delgame-ask');
+      render();
+    });
+  });
+  document.querySelectorAll('[data-delgame-no]').forEach(function(btn){
+    btn.addEventListener('click', function(){ appState.confirmDeleteGameId = null; render(); });
+  });
+  document.querySelectorAll('[data-delgame-yes]').forEach(function(btn){
+    btn.addEventListener('click', function(){ deleteGame(btn.getAttribute('data-delgame-yes')); });
+  });
+
+  document.querySelectorAll('[data-del-ask]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      appState.confirmDeleteIdx = parseInt(btn.getAttribute('data-del-ask'));
+      render();
+    });
+  });
+  document.querySelectorAll('[data-del-no]').forEach(function(btn){
+    btn.addEventListener('click', function(){ appState.confirmDeleteIdx = null; render(); });
+  });
+  document.querySelectorAll('[data-del-yes]').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      const idx = parseInt(btn.getAttribute('data-del-yes'));
+      appState.rounds.splice(idx, 1);
+      appState.confirmDeleteIdx = null;
+      saveState();
+      render();
+    });
+  });
+}
+
+/* ============ master render ============ */
+function render(){
+  const app = document.getElementById('app');
+  if (appState.view === 'setup'){
+    app.innerHTML = renderSetup();
+    attachSetupListeners();
+  } else {
+    app.innerHTML = renderGame();
+    attachGameListeners();
+    if (appState.formOpen) attachFormListeners();
+  }
+}
+
+initApp();
+</script>
+</body>
+</html>
