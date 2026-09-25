@@ -25,6 +25,7 @@
   .wrap{max-width:760px;margin:0 auto;}
 
   header{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:16px;}
+  .brand{min-width:0;}
   .brand .eyebrow{font-size:11px;letter-spacing:0.32em;text-transform:uppercase;color:var(--brass);font-weight:600;margin-bottom:2px;}
   .brand h1{font-family:'Fraunces',serif;font-weight:600;font-size:34px;line-height:0.9;margin:0;letter-spacing:0.01em;}
   .brand .sub{font-size:12px;color:var(--bone-dim);margin-top:5px;max-width:230px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -40,10 +41,17 @@
   .players.n3{grid-template-columns:repeat(3,1fr);}
   .players.n4{grid-template-columns:repeat(2,1fr);}
   @media(min-width:620px){.players.n4{grid-template-columns:repeat(4,1fr);}}
+  .players.n5,.entry-grid.n5,.edit-grid.n5{grid-template-columns:repeat(6,1fr);}
+  .players.n5>*,.entry-grid.n5>*,.edit-grid.n5>*{grid-column:span 2;}
+  .players.n5>:nth-child(4),.entry-grid.n5>:nth-child(4),.edit-grid.n5>:nth-child(4){grid-column:2/span 2;}
+  @media(min-width:620px){
+    .players.n5,.entry-grid.n5{grid-template-columns:repeat(5,1fr);}
+    .players.n5>*,.entry-grid.n5>*,.players.n5>:nth-child(4),.entry-grid.n5>:nth-child(4){grid-column:auto;}
+  }
   .pcard{position:relative;background:linear-gradient(165deg,var(--surface) 0%,var(--surface-2) 100%);border:1px solid var(--line);border-radius:var(--radius);padding:14px 12px 12px;box-shadow:var(--shadow);overflow:hidden;}
   .pcard.leader{border-color:var(--brass);box-shadow:var(--shadow),0 0 0 1px var(--brass) inset,0 0 26px -10px var(--brass);}
   .pcard .suit{position:absolute;top:10px;left:11px;font-size:15px;line-height:1;opacity:.85;}
-  .pcard .suit.red{color:#d98a7e;}
+  .pcard .suit.red{color:#d98a7e;} .pcard .suit.trump{color:var(--brass);}
   .pcard .crown{position:absolute;top:9px;right:11px;font-size:13px;color:var(--brass-bright);}
   .pname{width:100%;margin-top:14px;background:transparent;border:0;color:var(--bone);font-family:'Inter';font-size:13px;font-weight:600;letter-spacing:.02em;text-align:center;padding:2px 0;border-radius:6px;}
   .pname:focus{outline:none;background:rgba(0,0,0,0.18);}
@@ -80,7 +88,7 @@
   .dblhint b{font-variant-numeric:oldstyle-nums;}
   .rmark{font-size:8px;color:var(--brass);margin-left:2px;vertical-align:super;font-weight:600;}
   .field .fname{font-size:12px;font-weight:600;color:var(--bone-dim);text-align:center;display:flex;gap:5px;justify-content:center;align-items:center;}
-  .field .fname .s.red{color:#d98a7e;}
+  .field .fname .s.red{color:#d98a7e;} .field .fname .s.trump{color:var(--brass);}
   .stepper{display:flex;align-items:stretch;border:1px solid var(--line);border-radius:11px;overflow:hidden;background:rgba(0,0,0,0.2);}
   .stepper button{appearance:none;border:0;background:transparent;color:var(--bone-dim);font:inherit;font-size:17px;font-weight:600;width:34px;cursor:pointer;transition:color .12s,background .12s;flex:none;}
   .stepper button:hover{color:var(--bone);background:rgba(255,255,255,0.04);} .stepper button:active{background:rgba(255,255,255,0.08);}
@@ -88,8 +96,8 @@
   .stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0;}
   .stepper input:focus{outline:none;}
   .stepper.pos input{color:var(--win);} .stepper.neg input{color:var(--loss);}
-  .entry-grid.n3 .stepper button{width:26px;font-size:15px;}
-  .entry-grid.n3 .stepper input{font-size:18px;padding:9px 1px;}
+  .entry-grid.n3 .stepper button,.entry-grid.n5 .stepper button,.edit-grid.n5 .stepper button{width:26px;font-size:15px;}
+  .entry-grid.n3 .stepper input,.entry-grid.n5 .stepper input,.edit-grid.n5 .stepper input{font-size:18px;padding:9px 1px;}
   .actions{display:flex;gap:10px;margin-top:16px;}
   .btn{appearance:none;border:0;font:inherit;font-weight:600;font-size:14px;border-radius:12px;padding:13px 16px;cursor:pointer;transition:transform .08s,filter .15s,background .15s,color .15s,border-color .15s;letter-spacing:.01em;}
   .btn:active{transform:translateY(1px);}
@@ -163,6 +171,7 @@
       <div class="seg" role="group" aria-label="Število igralcev">
         <button id="p3" aria-pressed="false">3</button>
         <button id="p4" aria-pressed="true">4</button>
+        <button id="p5" aria-pressed="false">5</button>
       </div>
       <button class="pill" id="games" aria-label="Igre">Igre <span class="badge" id="gamesCount">1</span></button>
     </div>
@@ -198,14 +207,15 @@
 <script>
 (function(){
   "use strict";
-  var SUITS=[{g:"\u2663",red:false},{g:"\u2660",red:false},{g:"\u2665",red:true},{g:"\u2666",red:true}];
-  var DEFAULT_NAMES=["Igralec 1","Igralec 2","Igralec 3","Igralec 4"];
+  var MAXP=5;
+  var SUITS=[{g:"\u2663",red:false},{g:"\u2660",red:false},{g:"\u2665",red:true},{g:"\u2666",red:true},{g:"\u2726",trump:true}];
+  var DEFAULT_NAMES=["Igralec 1","Igralec 2","Igralec 3","Igralec 4","Igralec 5"];
   var LKEY="tarok-stevec-lib-v2", OLDKEY="tarok-stevec-v1";
 
   var library={sessions:[],currentId:null};
   var state=null;            // points to current session
-  var pendingInputs=[0,0,0,0];
-  var pendingDouble=[false,false,false,false];  // per-player ×2 toggle for the round being entered
+  var pendingInputs=fill(0);
+  var pendingDouble=fill(false);  // per-player ×2 toggle for the round being entered
   var armed=null;            // index of field waiting to be paired
   var entrySetters=[];       // setter fns for entry fields (for mirroring)
   var PAIRCOL=["#c9a85e","#6fb3c9"];
@@ -231,21 +241,23 @@
     try{ localStorage.setItem(LKEY,data); }catch(e){}
   }
   function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
-  function newSession(n){ return {id:uid(),title:"",numPlayers:(n===3?3:4),names:DEFAULT_NAMES.slice(),radlci:[0,0,0,0],links:[],rounds:[],created:Date.now(),updated:Date.now()}; }
+  function fill(v){ var a=[]; for(var i=0;i<MAXP;i++)a.push(v); return a; }
+  function validN(n){ return (n===3||n===5)?n:4; }
+  function newSession(n){ return {id:uid(),title:"",numPlayers:validN(n),names:DEFAULT_NAMES.slice(),radlci:fill(0),links:[],rounds:[],created:Date.now(),updated:Date.now()}; }
   function freshLib(){ var s=newSession(4); return {sessions:[s],currentId:s.id}; }
   function normSession(s){
     s.id=s.id||uid();
-    s.numPlayers=s.numPlayers===3?3:4;
+    s.numPlayers=validN(s.numPlayers);
     s.title=typeof s.title==="string"?s.title:"";
-    s.names=(s.names||DEFAULT_NAMES).slice(0,4); while(s.names.length<4)s.names.push(DEFAULT_NAMES[s.names.length]);
-    s.radlci=(s.radlci||[0,0,0,0]).slice(0,4).map(function(x){return Math.max(0,Math.round(Number(x)||0));}); while(s.radlci.length<4)s.radlci.push(0);
+    s.names=(s.names||DEFAULT_NAMES).slice(0,MAXP); while(s.names.length<MAXP)s.names.push(DEFAULT_NAMES[s.names.length]);
+    s.radlci=(s.radlci||fill(0)).slice(0,MAXP).map(function(x){return Math.max(0,Math.round(Number(x)||0));}); while(s.radlci.length<MAXP)s.radlci.push(0);
     s.rounds=(s.rounds||[]).map(function(r){
-      var d=(r.deltas||[]).slice(0,4).map(function(x){return Math.round(Number(x)||0);}); while(d.length<4)d.push(0);
-      var u=(r.used||[]).slice(0,4).map(Boolean); while(u.length<4)u.push(false);
-      var c=(r.consumed||[]).slice(0,4).map(Boolean); while(c.length<4)c.push(false);
+      var d=(r.deltas||[]).slice(0,MAXP).map(function(x){return Math.round(Number(x)||0);}); while(d.length<MAXP)d.push(0);
+      var u=(r.used||[]).slice(0,MAXP).map(Boolean); while(u.length<MAXP)u.push(false);
+      var c=(r.consumed||[]).slice(0,MAXP).map(Boolean); while(c.length<MAXP)c.push(false);
       return {deltas:d,used:u,consumed:c};
     });
-    s.links=(s.links||[]).filter(function(p){return Array.isArray(p)&&p.length===2;}).map(function(p){return [Math.round(p[0]),Math.round(p[1])];}).filter(function(p){return p[0]!==p[1]&&p[0]>=0&&p[1]>=0&&p[0]<4&&p[1]<4;}).slice(0,2);
+    s.links=(s.links||[]).filter(function(p){return Array.isArray(p)&&p.length===2;}).map(function(p){return [Math.round(p[0]),Math.round(p[1])];}).filter(function(p){return p[0]!==p[1]&&p[0]>=0&&p[1]>=0&&p[0]<MAXP&&p[1]<MAXP;}).slice(0,2);
     s.created=s.created||Date.now(); s.updated=s.updated||Date.now();
     return s;
   }
@@ -272,7 +284,7 @@
 
   // ---------- derived ----------
   function cur(){ return library.sessions.filter(function(s){return s.id===library.currentId;})[0]; }
-  function totalsOf(s){ var t=[0,0,0,0]; s.rounds.forEach(function(r){for(var i=0;i<4;i++)t[i]+=(r.deltas[i]||0);}); return t; }
+  function totalsOf(s){ var t=fill(0); s.rounds.forEach(function(r){for(var i=0;i<MAXP;i++)t[i]+=(r.deltas[i]||0);}); return t; }
   function leaderOf(s){
     if(s.rounds.length===0) return -1;
     var t=totalsOf(s),best=-Infinity,idx=-1,tie=false;
@@ -312,7 +324,7 @@
       var card=document.createElement("div");
       card.className="pcard"+(i===lead?" leader":"");
       card.innerHTML=
-        '<span class="suit'+(suit.red?" red":"")+'">'+suit.g+'</span>'+
+        '<span class="suit'+suitCls(suit)+'">'+suit.g+'</span>'+
         (i===lead?'<span class="crown">\u265B</span>':'')+
         '<input class="pname" value="'+escapeAttr(s.names[i])+'" maxlength="14" aria-label="Ime igralca '+(i+1)+'">'+
         '<div class="pscore '+cls+'">'+(score>0?"+":"")+score+'</div>'+
@@ -346,7 +358,7 @@
     }
     var dblHtml = dblOpts ? ('<button class="dblbtn'+(dblOpts.on?" on":"")+'" data-dbl aria-pressed="'+(dblOpts.on?"true":"false")+'" aria-label="Podvoji točke (\u00d72)">\u00d72</button>') : "";
     f.innerHTML=linkHtml+dblHtml+
-      '<div class="fname"><span class="s'+(suit.red?" red":"")+'">'+suit.g+'</span>'+escapeHtml(name)+'</div>'+
+      '<div class="fname"><span class="s'+suitCls(suit)+'">'+suit.g+'</span>'+escapeHtml(name)+'</div>'+
       '<div class="stepper '+scls+'"><button data-s="-" aria-label="Manj">\u2212</button>'+
       '<input type="text" inputmode="numeric" value="'+(v||"")+'" placeholder="0" aria-label="Točke '+escapeAttr(name)+'">'+
       '<button data-s="+" aria-label="Več">+</button></div>'+
@@ -448,7 +460,7 @@
     var m=el('<div class="modal" role="dialog" aria-modal="true"></div>');
     m.innerHTML='<div class="modal-head"><h3>Runda '+(idx+1)+'</h3>'+
       '<span class="sum" id="esum" style="font-size:12px;color:var(--bone-dim)"></span></div>'+
-      '<div class="edit-grid" id="egrid"></div>'+
+      '<div class="edit-grid n'+n+'" id="egrid"></div>'+
       '<div class="modal-actions"><button class="btn btn-danger" data-del>Izbriši</button>'+
       '<button class="btn btn-ghost" data-cancel>Prekliči</button>'+
       '<button class="btn btn-primary" data-save>Shrani</button></div>';
@@ -458,12 +470,12 @@
     eup();
     m.querySelector("[data-cancel]").addEventListener("click",closeModal);
     m.querySelector("[data-save]").addEventListener("click",function(){
-      var nd=[0,0,0,0]; for(var i=0;i<n;i++)nd[i]=vals[i]||0; s.rounds[idx].deltas=nd;
+      var nd=fill(0); for(var i=0;i<n;i++)nd[i]=vals[i]||0; s.rounds[idx].deltas=nd;
       save(); closeModal(); renderPlayers(); renderHistory();
     });
     m.querySelector("[data-del]").addEventListener("click",function(){
       var rd=s.rounds[idx];
-      if(rd.consumed){ for(var i=0;i<4;i++){ if(rd.consumed[i]) s.radlci[i]=Math.min(99,s.radlci[i]+1); } }
+      if(rd.consumed){ for(var i=0;i<MAXP;i++){ if(rd.consumed[i]) s.radlci[i]=Math.min(99,s.radlci[i]+1); } }
       s.rounds.splice(idx,1); save(); closeModal(); renderPlayers(); renderHistory();
     });
     openModal(m);
@@ -498,7 +510,7 @@
     if(!code) throw new Error("empty");
     var S=b64urlDecode(code), L=S.split("\n");
     if(L[0]!=="TRK1") throw new Error("magic");
-    var n=parseInt(L[1],10); if(n!==3&&n!==4) throw new Error("n");
+    var n=parseInt(L[1],10); if(n<3||n>MAXP) throw new Error("n");
     var names=(L[3]||"").split("\t");
     var rad=(L[4]||"").split(",");
     var rounds=[];
@@ -506,14 +518,14 @@
       var line=L[li]; if(!line) continue;
       var p=line.split(",").map(function(x){return Math.round(Number(x)||0);});
       if(p.length<n+2) continue;
-      var deltas=[0,0,0,0],used=[false,false,false,false],cons=[false,false,false,false];
+      var deltas=fill(0),used=fill(false),cons=fill(false);
       for(var i=0;i<n;i++) deltas[i]=p[i]||0;
       var um=p[n]||0, cm=p[n+1]||0;
-      for(var i=0;i<4;i++){ used[i]=!!(um&(1<<i)); cons[i]=!!(cm&(1<<i)); }
+      for(var i=0;i<MAXP;i++){ used[i]=!!(um&(1<<i)); cons[i]=!!(cm&(1<<i)); }
       rounds.push({deltas:deltas,used:used,consumed:cons});
     }
     var sess=newSession(n); sess.title=L[2]||"";
-    for(var i=0;i<4;i++){ sess.names[i]=(names[i]!==undefined&&names[i]!=="")?names[i]:DEFAULT_NAMES[i]; sess.radlci[i]=Math.max(0,Math.round(Number(rad[i])||0)); }
+    for(var i=0;i<MAXP;i++){ sess.names[i]=(names[i]!==undefined&&names[i]!=="")?names[i]:DEFAULT_NAMES[i]; sess.radlci[i]=Math.max(0,Math.round(Number(rad[i])||0)); }
     sess.rounds=rounds;
     return normSession(sess);
   }
@@ -549,7 +561,7 @@
     m.querySelector("[data-do]").addEventListener("click",function(){
       var sess=null; try{ sess=decodeGame(ta.value); }catch(e){ sess=null; }
       if(!sess||!sess.id){ err.textContent="Koda ni veljavna. Preveri, ali je prilepljena v celoti."; return; }
-      library.sessions.push(sess); library.currentId=sess.id; pendingInputs=[0,0,0,0];
+      library.sessions.push(sess); library.currentId=sess.id; pendingInputs=fill(0);
       save(); closeModal(); renderAll();
     });
     openModal(m); setTimeout(function(){ try{ta.focus();}catch(e){} },30);
@@ -579,12 +591,12 @@
       row.querySelector("[data-x]").addEventListener("click",function(){ deleteSession(s.id); });
       row.querySelector("[data-share]").addEventListener("click",function(){ shareModal(s); });
       var ob=row.querySelector("[data-open]");
-      if(ob) ob.addEventListener("click",function(){ library.currentId=s.id; pendingInputs=[0,0,0,0]; save(); closeModal(); renderAll(); });
+      if(ob) ob.addEventListener("click",function(){ library.currentId=s.id; pendingInputs=fill(0); save(); closeModal(); renderAll(); });
       list.appendChild(row);
     });
     m.querySelector("[data-new]").addEventListener("click",function(){
       var s=newSession(cur().numPlayers); library.sessions.push(s); library.currentId=s.id;
-      pendingInputs=[0,0,0,0]; save(); closeModal(); renderAll();
+      pendingInputs=fill(0); save(); closeModal(); renderAll();
     });
     m.querySelector("[data-import]").addEventListener("click",importModal);
     m.querySelector("[data-close]").addEventListener("click",closeModal);
@@ -595,27 +607,27 @@
     confirmModal("Izbrišem igro?", '"'+sessTitle(s)+'" bo trajno odstranjena.', "Izbriši", function(){
       library.sessions=library.sessions.filter(function(x){return x.id!==id;});
       if(library.sessions.length===0){ var ns=newSession(4); library.sessions.push(ns); library.currentId=ns.id; }
-      if(library.currentId===id){ library.currentId=library.sessions.slice().sort(function(a,b){return b.updated-a.updated;})[0].id; pendingInputs=[0,0,0,0]; }
+      if(library.currentId===id){ library.currentId=library.sessions.slice().sort(function(a,b){return b.updated-a.updated;})[0].id; pendingInputs=fill(0); }
       save(); renderAll(); openGames();
     }, true);
   }
 
   // ---------- actions ----------
   $("record").addEventListener("click",function(){
-    var s=cur(),any=false,base=[0,0,0,0];
+    var s=cur(),any=false,base=fill(0);
     for(var i=0;i<s.numPlayers;i++){ var v=pendingInputs[i]||0; base[i]=v; if(v!==0)any=true; }
     if(!any) return;
-    var d=[0,0,0,0],used=[false,false,false,false],cons=[false,false,false,false];
+    var d=fill(0),used=fill(false),cons=fill(false);
     for(var i=0;i<s.numPlayers;i++){
       var v=base[i];
       if(v!==0 && pendingDouble[i]){ d[i]=v*2; used[i]=true; }
       else { d[i]=v; }
     }
-    s.rounds.push({deltas:d,used:used,consumed:cons}); pendingInputs=[0,0,0,0]; pendingDouble=[false,false,false,false]; s.links=[]; armed=null;
+    s.rounds.push({deltas:d,used:used,consumed:cons}); pendingInputs=fill(0); pendingDouble=fill(false); s.links=[]; armed=null;
     save(); renderPlayers(); renderEntry(); renderHistory();
     var f=elEntry.querySelector("input"); if(f)f.focus();
   });
-  $("clearEntry").addEventListener("click",function(){ pendingInputs=[0,0,0,0]; pendingDouble=[false,false,false,false]; renderEntry(); });
+  $("clearEntry").addEventListener("click",function(){ pendingInputs=fill(0); pendingDouble=fill(false); renderEntry(); });
   $("clearHist").addEventListener("click",function(){
     if(cur().rounds.length===0) return;
     confirmModal("Pobrišem runde?", "Vse runde te igre bodo izbrisane. Imena in radeljci ostanejo.", "Pobriši", function(){
@@ -626,28 +638,34 @@
 
   function setPlayers(n){
     var s=cur(); if(s.numPlayers===n) return;
-    if(n===3&&s.numPlayers===4){
-      var hasData=s.rounds.some(function(r){return r.deltas[3]!==0;})||s.radlci[3]!==0;
-      if(hasData){ confirmModal("Na 3 igralce?", "4. igralec ne bo več prikazan v tej igri.", "Preklopi", function(){ s.numPlayers=3; save(); renderAll(); }); return; }
+    if(n<s.numPlayers){
+      var hidden=[]; for(var i=n;i<s.numPlayers;i++){ if(s.rounds.some(function(r){return r.deltas[i]!==0;})||s.radlci[i]!==0) hidden.push(i); }
+      if(hidden.length){
+        var who=hidden.map(function(i){return (i+1)+".";}).join(" in ");
+        confirmModal("Na "+n+" igralce?", who+(hidden.length>1?" igralec ne bosta več prikazana":" igralec ne bo več prikazan")+" v tej igri.", "Preklopi", function(){ s.numPlayers=n; save(); renderAll(); }); return;
+      }
     }
     s.numPlayers=n; save(); renderAll();
   }
   $("p3").addEventListener("click",function(){ setPlayers(3); });
   $("p4").addEventListener("click",function(){ setPlayers(4); });
+  $("p5").addEventListener("click",function(){ setPlayers(5); });
 
   // ---------- helpers ----------
+  function suitCls(suit){ return suit.red?" red":(suit.trump?" trump":""); }
   function clampInt(n){ n=Math.round(Number(n)||0); if(n>9999)n=9999; if(n<-9999)n=-9999; return n; }
   function escapeHtml(s){ return String(s).replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c];}); }
   function escapeAttr(s){ return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
 
   function renderAll(){
-    state=cur(); armed=null; pendingDouble=[false,false,false,false];
+    state=cur(); armed=null; pendingDouble=fill(false);
     $("p3").setAttribute("aria-pressed", state.numPlayers===3?"true":"false");
     $("p4").setAttribute("aria-pressed", state.numPlayers===4?"true":"false");
+    $("p5").setAttribute("aria-pressed", state.numPlayers===5?"true":"false");
     renderSub(); renderPlayers(); renderEntry(); renderHistory();
   }
 
-  load(function(){ pendingInputs=[0,0,0,0]; renderAll(); });
+  load(function(){ pendingInputs=fill(0); renderAll(); });
 })();
 </script>
 </body>
