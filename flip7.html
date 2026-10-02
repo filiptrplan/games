@@ -24,7 +24,7 @@
   --line:rgba(255,244,220,.14);
   --font-display:'Shrikhand',Georgia,serif;
   --font-body:'Rubik',system-ui,-apple-system,sans-serif;
-  --cw:min(84px, calc((min(100vw, 520px) - 60px) / 4), calc((100dvh - 450px) / 3.72));
+  --cw:max(40px, min(84px, calc((min(100vw, 520px) - 60px) / 4), calc((100dvh - 450px) / 3.72)));
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html{-webkit-text-size-adjust:100%}
@@ -197,6 +197,18 @@ input{font-family:inherit}
 .row2{display:grid;gap:16px;margin:18px 0}
 .tog{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0;font-weight:600}
 .tog small{display:block;font-weight:400;color:var(--cream-dim);font-size:.8rem}
+.tog.spd{flex-wrap:wrap;row-gap:4px}
+.spd-ctl{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex:1 1 190px}
+.spd-v{min-width:4.2em;text-align:right;font-size:.85rem;font-weight:800;color:var(--mustard)}
+.spd input[type=range]{
+  -webkit-appearance:none;appearance:none;flex:1;min-width:0;max-width:170px;height:30px;background:transparent;margin:0;cursor:pointer;
+}
+.spd input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:99px;background:rgba(255,244,220,.18)}
+.spd input[type=range]::-moz-range-track{height:8px;border-radius:99px;background:rgba(255,244,220,.18)}
+.spd input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;margin-top:-8px;border-radius:50%;background:var(--cream);border:none;box-shadow:0 0 0 4px var(--teal)}
+.spd input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--cream);border:none;box-shadow:0 0 0 4px var(--teal)}
+.spd input[type=range]:focus-visible{outline:none}
+.spd input[type=range]:focus-visible::-webkit-slider-thumb{box-shadow:0 0 0 4px var(--mustard)}
 .switch{position:relative;width:52px;height:30px;border-radius:99px;border:none;background:rgba(255,244,220,.18);flex:none;transition:background .2s}
 .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--cream);transition:transform .25s cubic-bezier(.3,1.5,.5,1)}
 .switch.on{background:var(--teal)}
@@ -260,6 +272,7 @@ input{font-family:inherit}
 .chip .cdots{display:flex;gap:3px;margin-top:5px}
 .chip .cdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,244,220,.15)}
 .chip .cdots i.f{background:var(--pc)}
+.chip .cmini{display:none;gap:3px;flex-wrap:wrap;margin-top:7px}
 .chip .cbadge{position:absolute;top:6px;right:7px;font-size:.8rem;line-height:1}
 .chip .cdeal{position:absolute;bottom:6px;right:7px;font-size:.6rem;font-weight:900;background:var(--cream);color:var(--ink);border-radius:5px;padding:1px 4px}
 .chip.s-bust{opacity:.6}
@@ -369,6 +382,8 @@ input{font-family:inherit}
 .btn.hit.ready .bt{animation:wiggle 2.4s ease-in-out infinite}
 @keyframes wiggle{0%,80%,100%{transform:rotate(0)}85%{transform:rotate(-5deg)}90%{transform:rotate(5deg)}95%{transform:rotate(-3deg)}}
 .peekbar{width:100%}
+.keys{display:none;justify-content:center;gap:6px;margin-top:10px;font-size:.75rem;font-weight:600;color:rgba(255,244,220,.45)}
+.keys kbd{font-family:inherit;font-weight:800;font-size:.72rem;padding:1px 6px;border-radius:5px;background:rgba(255,244,220,.1);color:var(--cream-dim);box-shadow:inset 0 -1px 0 rgba(0,0,0,.3)}
 
 /* ================= OVERLAYS ================= */
 .overlay{
@@ -404,11 +419,11 @@ input{font-family:inherit}
 .opt .on em{font-style:normal;font-weight:500;color:var(--cream-dim);font-size:.85rem}
 .opt .op{font-weight:900;color:var(--mustard)}
 .opt .ot{grid-column:2 / span 2;display:flex;gap:3px;flex-wrap:wrap}
-.opt .ot i{font-style:normal;font-size:.68rem;font-weight:800;min-width:18px;text-align:center;padding:2px 4px;border-radius:5px;background:var(--c);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35)}
-.opt .ot i.m{background:var(--tang)}
-.opt .ot i.x{background:#7b3fe4}
-.opt .ot i.s{background:var(--rose)}
-.opt .ot .none{font-size:.75rem;color:var(--cream-dim)}
+.ot i{font-style:normal;font-size:.68rem;font-weight:800;min-width:18px;text-align:center;padding:2px 4px;border-radius:5px;background:var(--c);color:#fff;text-shadow:0 1px 0 rgba(0,0,0,.35)}
+.ot i.m{background:var(--tang)}
+.ot i.x{background:#7b3fe4}
+.ot i.s{background:var(--rose)}
+.ot .none{font-size:.75rem;color:var(--cream-dim)}
 
 .sum-list{display:grid;gap:8px;margin:14px 0 16px}
 .srow{
@@ -496,6 +511,101 @@ input{font-family:inherit}
 .award .av{font-size:.8rem;color:var(--cream-dim)}
 .over .btns2{display:grid;gap:10px;margin-top:18px}
 .over .sum-list{text-align:left}
+
+/* ================= LARGER SCREENS ================= */
+@media (hover:hover) and (pointer:fine){
+  .keys{display:flex}
+  .btn:not(:disabled):hover{filter:brightness(1.07)}
+  .chip:hover{background:rgba(255,244,220,.08)}
+  .chip.on:hover{background:rgba(255,244,220,.12)}
+  .icon-btn:hover{background:rgba(255,244,220,.14)}
+}
+
+/* tablet (portrait) and up: roomier single column */
+@media (min-width:700px){
+  .setup{max-width:620px;padding-top:40px}
+  .fan{height:180px;max-width:420px}
+  .fan .card{--w:92px;margin-left:-46px}
+  .sheet{max-width:540px;padding:26px 24px 22px}
+  .ch-card .card{--w:116px}
+  .over{max-width:680px;padding-top:56px}
+  .over .btns2{grid-template-columns:1fr 1fr}
+  .rules .rcards .card{--w:64px}
+}
+@media (min-width:700px) and (min-height:800px){
+  :root{--cw:max(48px, min(160px, calc((min(100vw, 760px) - 110px) / 4), calc((100dvh - 540px) / 3.72)))}
+  .game{max-width:760px;padding:16px 20px calc(18px + env(safe-area-inset-bottom))}
+  .top{margin-bottom:12px}
+  .chip{flex:1 0 112px;max-width:180px;padding:10px 12px 9px}
+  .table{padding:18px 20px 20px;border-radius:28px}
+  .who .nm{font-size:1.6rem}
+  .track{gap:5px;margin:16px 0 14px}
+  .track i{font-size:.85rem;padding:7px 0}
+  .nums{gap:12px}
+  .mods{gap:10px;margin-top:16px}
+  .btn .bt{font-size:2rem}
+}
+
+/* landscape tablets & desktops: sidebar scoreboard, all seven slots in a row */
+@media (min-width:900px) and (min-height:560px) and (min-aspect-ratio:1/1){
+  :root{--side:270px;--cw:max(48px, min(132px, calc((min(100vw, 1320px) - var(--side) - 170px) / 7), calc((100dvh - 430px) / 2.35)))}
+  .game{
+    max-width:1320px;height:100dvh;min-height:0;
+    display:grid;grid-template-columns:var(--side) minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto;column-gap:20px;
+    padding:14px 24px calc(18px + env(safe-area-inset-bottom));
+  }
+  .top{grid-column:1 / -1;margin-bottom:12px}
+  .mini-logo{font-size:1.9rem}
+  .rinfo{font-size:1.1rem}
+  .strip{
+    grid-column:1;grid-row:2 / span 2;flex-direction:column;gap:10px;
+    overflow-x:hidden;overflow-y:auto;scroll-snap-type:y proximity;padding:4px 6px 4px 2px;
+  }
+  .chip{flex:none;min-width:0;max-width:none;width:100%;padding:11px 14px 10px}
+  .chip.turn{transform:translateX(4px)}
+  .chip .cnm{font-size:.95rem;padding-right:22px}
+  .chip .ctot{font-size:1.35rem}
+  .chip .crd{font-size:.8rem}
+  .chip .cdots{display:none}
+  .chip .cmini{display:flex}
+  .chip .cbadge{font-size:.95rem;top:9px;right:10px}
+  .chip .cdeal{bottom:9px;right:10px;font-size:.66rem}
+  .table{grid-column:2;grid-row:2;padding:18px 24px 20px;border-radius:28px}
+  .who .nm{font-size:1.7rem}
+  .who .sub{font-size:.95rem}
+  .track{gap:6px;margin:16px 0 12px}
+  .track i{font-size:.9rem;padding:7px 0}
+  .nums{grid-template-columns:repeat(7, var(--cw));gap:10px}
+  .mods{gap:10px;margin-top:18px}
+  .stamp{font-size:clamp(3rem,6vw,5rem)}
+  .stamp.stayed{font-size:clamp(2.4rem,4.6vw,3.8rem)}
+  .controls{grid-column:2;grid-row:3;width:100%;max-width:640px;justify-self:center;padding-top:12px}
+  .status{font-size:1.05rem}
+  .btn .bt{font-size:2rem}
+  .toast{bottom:calc(170px + env(safe-area-inset-bottom))}
+}
+
+/* long player lists go two-up when there's room */
+@media (min-width:900px){
+  .sheet.many{max-width:860px}
+  .sheet.many .sum-list, .sheet.many .opts, .over.many .sum-list{grid-template-columns:1fr 1fr}
+  .sheet.many .sum-list .srow, .over.many .sum-list .srow{align-content:start}
+}
+
+/* wide setup screen: hero on the left, form on the right */
+@media (min-width:960px){
+  .setup{
+    max-width:1100px;display:grid;grid-template-columns:minmax(0,1fr) 480px;column-gap:56px;align-items:start;
+    padding:48px 32px;min-height:100dvh;align-content:center;
+  }
+  .setup-hero{position:sticky;top:64px;padding-top:36px}
+  .logo .l-flip{font-size:8rem}
+  .logo .l-7{width:7rem;height:9.6rem;font-size:6.2rem;border-radius:18px}
+  .tagline{font-size:1.15rem;margin-top:26px}
+  .fan{height:240px;max-width:480px;margin-top:20px}
+  .fan .card{--w:116px;margin-left:-58px}
+  .setup-main > .panel:first-child{margin-top:0}
+}
 </style>
 </head>
 <body>
@@ -526,7 +636,14 @@ const ACT_NAMES = {freeze:'Freeze', flip3:'Flip Three', second:'Second Chance'};
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const wait = ms => new Promise(r => setTimeout(r, reduced ? Math.min(ms, 350) : ms));
+const SPEED_MIN = .4, SPEED_MAX = 1.6;
+const spd = () => Math.min(SPEED_MAX, Math.max(SPEED_MIN, +S.speed || 1));
+const wait = ms => new Promise(r => setTimeout(r, reduced ? Math.min(ms, 350) : ms / spd()));
+// scale the CSS animations running on (and inside) an element to the chosen speed
+function pace(el){ if (el && el.getAnimations) el.getAnimations({subtree:true}).forEach(a => { a.playbackRate = spd(); }); return el; }
+const speedLabel = v => v == 1 ? 'Normal' : v.toFixed(1) + '×';
+const speedHTML = attr => `<div class="tog spd"><span>Animation speed<small>Slide left if things move too fast</small></span>
+  <span class="spd-ctl"><input type="range" min="${SPEED_MIN}" max="${SPEED_MAX}" step="0.1" value="${spd()}" ${attr} aria-label="Animation speed"><b class="spd-v">${speedLabel(spd())}</b></span></div>`;
 const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 const pick = a => a[Math.floor(Math.random() * a.length)];
 function load(k, d){ try { const v = JSON.parse(localStorage.getItem(k)); return v ?? d; } catch(e){ return d; } }
@@ -534,7 +651,7 @@ function store(k, v){ try { v == null ? localStorage.removeItem(k) : localStorag
 
 const app = $('#app'), modal = $('#modal'), menu = $('#menu'), fx = $('#fx');
 
-const S = Object.assign({sound:true, odds:true, target:200, names:['','','']}, load('flip7.settings', {}));
+const S = Object.assign({sound:true, odds:true, speed:1, target:200, names:['','','']}, load('flip7.settings', {}));
 const saveSettings = () => store('flip7.settings', S);
 
 /* ---------------- sound ---------------- */
@@ -682,6 +799,7 @@ function chipHTML(p, i, shown){
     <span class="cnm">${esc(p.name)}</span>
     <span class="ctot">${p.total}<span class="crd ${rp > 0 && st !== 'bust' ? 'pos' : ''}">${rd}</span></span>
     <span class="cdots">${dots}</span>
+    <span class="ot cmini">${trackMini(p)}</span>
     ${badge ? `<span class="cbadge">${badge}</span>` : ''}
     ${G.dealer === i ? '<span class="cdeal">D</span>' : ''}
   </button>`;
@@ -733,7 +851,7 @@ function render(){
   const shown = G.view ?? G.focus;
   const P = G.players[shown];
   const strip = $('.strip');
-  const scroll = strip ? strip.scrollLeft : 0;
+  const scroll = strip ? [strip.scrollLeft, strip.scrollTop] : [0, 0];
   const swap = G.lastShown !== null && G.lastShown !== shown;
   G.lastShown = shown;
   const st = P.flip7 ? 'flip7' : P.status;
@@ -775,16 +893,25 @@ function render(){
       <div class="status">${status}</div>
       ${asking ? oddsHTML(askP) : ''}
       ${controls}
+      ${asking ? '<div class="keys"><kbd>F</kbd> flip <kbd>S</kbd> stay</div>' : ''}
     </footer>
   </div>`;
   if (G.stampFresh === shown) G.stampFresh = null;
+  pace(app);
 
   const ns = $('.strip');
-  ns.scrollLeft = scroll;
+  [ns.scrollLeft, ns.scrollTop] = scroll;
   const chip = ns.querySelector('.chip.on');
   if (chip) {
-    const l = chip.offsetLeft - ns.offsetLeft, r = l + chip.offsetWidth;
-    if (l < ns.scrollLeft || r > ns.scrollLeft + ns.clientWidth) ns.scrollTo({left: l - (ns.clientWidth - chip.offsetWidth) / 2, behavior: reduced ? 'auto' : 'smooth'});
+    const behavior = reduced ? 'auto' : 'smooth';
+    if (ns.scrollHeight > ns.clientHeight + 1) {
+      // vertical sidebar (wide screens)
+      const t = chip.offsetTop - ns.offsetTop, b = t + chip.offsetHeight;
+      if (t < ns.scrollTop || b > ns.scrollTop + ns.clientHeight) ns.scrollTo({top: t - (ns.clientHeight - chip.offsetHeight) / 2, behavior});
+    } else {
+      const l = chip.offsetLeft - ns.offsetLeft, r = l + chip.offsetWidth;
+      if (l < ns.scrollLeft || r > ns.scrollLeft + ns.clientWidth) ns.scrollTo({left: l - (ns.clientWidth - chip.offsetWidth) / 2, behavior});
+    }
   }
 }
 
@@ -806,7 +933,7 @@ async function flyIn(card){
     const dx = (a.left + a.width / 2) - (b.left + b.width / 2);
     const dy = (a.top + a.height / 2) - (b.top + b.height / 2);
     const s = a.width / b.width;
-    const dur = 540;
+    const dur = 540 / spd();
     const mv = f.animate([
       {transform:`translate(${dx}px,${dy}px) scale(${s}) rotate(-6deg)`},
       {transform:`translate(${dx * .45}px,${dy * .45 - 40}px) scale(1.25) rotate(5deg)`, offset:.5},
@@ -820,7 +947,7 @@ async function flyIn(card){
   }
   G.incoming = null;
   const el2 = document.querySelector(`[data-cid="${card.id}"]`);
-  if (el2) { el2.classList.remove('incoming'); el2.classList.add('landed'); }
+  if (el2) { el2.classList.remove('incoming'); el2.classList.add('landed'); pace(el2); }
   sfx.land();
   bumpPoints();
 }
@@ -831,6 +958,7 @@ function banner(text, color, sub){
   b.style.setProperty('--pc', color);
   b.innerHTML = `<div><small>${esc(sub || '')}</small><strong>${esc(text)}</strong></div>`;
   document.body.appendChild(b);
+  pace(b);
   return wait(950).then(() => b.remove());
 }
 function burst(html, cls, ms = 1600){
@@ -838,13 +966,15 @@ function burst(html, cls, ms = 1600){
   b.className = 'burst ' + cls;
   b.innerHTML = html;
   document.body.appendChild(b);
-  setTimeout(() => b.remove(), ms + 100);
+  pace(b);
+  setTimeout(() => b.remove(), ms / spd() + 100);
 }
 function toast(msg){
   const t = document.createElement('div');
   t.className = 'toast'; t.textContent = msg;
   document.body.appendChild(t);
-  setTimeout(() => t.remove(), 2300);
+  pace(t);
+  setTimeout(() => t.remove(), 2300 / spd());
 }
 function confetti(n = 120){
   if (reduced) return;
@@ -868,7 +998,7 @@ function snow(n = 28){
     setTimeout(() => d.remove(), 4200);
   }
 }
-function shakeTable(){ const t = $('.table'); if (t) { t.classList.remove('shake'); void t.offsetWidth; t.classList.add('shake'); } }
+function shakeTable(){ const t = $('.table'); if (t) { t.classList.remove('shake'); void t.offsetWidth; t.classList.add('shake'); pace(t); } }
 
 /* ---------------- player input ---------------- */
 function askHitStay(pi){
@@ -892,7 +1022,7 @@ function trackMini(q){
 function choose(pi, card, opts, title, sub){
   return new Promise(res => {
     const p = G.players[pi];
-    modal.innerHTML = `<div class="overlay"><div class="sheet" style="--pc:${p.color}">
+    modal.innerHTML = `<div class="overlay"><div class="sheet ${opts.length > 5 ? 'many' : ''}" style="--pc:${p.color}">
       <div class="ch-card">${cardHTML({...card, id:null})}</div>
       <h3><span class="dot"></span>${esc(p.name)}, ${title}</h3>
       <p class="sub">${sub}</p>
@@ -900,6 +1030,7 @@ function choose(pi, card, opts, title, sub){
         <span class="dot"></span><span class="on">${esc(q.name)}${i === pi ? ' <em>(you)</em>' : ''}</span><span class="op">${roundPts(q)} pts</span>
         <span class="ot">${trackMini(q)}</span></button>`; }).join('')}</div>
     </div></div>`;
+    pace(modal);
     $$('.opt', modal).forEach(b => b.onclick = () => { sfx.click(); modal.innerHTML = ''; res(+b.dataset.i); });
   });
 }
@@ -920,7 +1051,7 @@ async function dealTo(pi, ctx = null){
         await wait(350);
         sfx.save(); buzz(40);
         burst('Saved!<small>Second Chance used</small>', 'saved', 1300);
-        $$(`[data-cid="${c.id}"], [data-cid="${p.sc.id}"]`).forEach(e => e.classList.add('poof'));
+        $$(`[data-cid="${c.id}"], [data-cid="${p.sc.id}"]`).forEach(e => { e.classList.add('poof'); pace(e); });
         await wait(900);
         G.discard.push(c, p.sc);
         p.dupe = null; p.sc = null;
@@ -1084,7 +1215,7 @@ async function playRound(){
       if (last !== i && activeIdx().length > 1) {
         G.msg = '';
         render();
-        await banner(p.name, p.color, 'Pass the phone to');
+        await banner(p.name, p.color, innerWidth < 700 ? 'Pass the phone to' : 'Your turn');
       }
       last = i;
       const a = await askHitStay(i);
@@ -1135,7 +1266,7 @@ function collectCards(){
 function showSummary(res, over){
   const max = Math.max(...res.map(r => r.p.total));
   const scale = Math.max(G.target, max);
-  modal.innerHTML = `<div class="overlay"><div class="sheet">
+  modal.innerHTML = `<div class="overlay"><div class="sheet ${res.length > 5 ? 'many' : ''}">
     <h2>Round ${G.round}</h2>
     <p class="sub">${over ? 'We have a winner…' : `First to ${G.target} wins`}</p>
     ${G.note ? `<p class="note">${G.note}</p>` : ''}
@@ -1157,6 +1288,7 @@ function showSummary(res, over){
     if (e.currentTarget.dataset.act === 'finish') gameOver();
     else playRound();
   };
+  pace(modal);
   requestAnimationFrame(() => requestAnimationFrame(() => {
     $$('.sbar i', modal).forEach(i => i.style.width = i.dataset.w + '%');
     $$('[data-count]', modal).forEach(el => countUp(el, +(el.dataset.from || 0), +el.dataset.count, el.dataset.pre || ''));
@@ -1164,7 +1296,7 @@ function showSummary(res, over){
 }
 function countUp(el, from, to, pre){
   if (reduced || from === to) { el.textContent = pre + to; return; }
-  const t0 = performance.now(), d = 900;
+  const t0 = performance.now(), d = 900 / spd();
   const step = t => {
     const k = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - k, 3);
     el.textContent = pre + Math.round(from + (to - from) * e);
@@ -1187,7 +1319,7 @@ function gameOver(){
     buster.busts ? {i:'💥', t:'Daredevil', n:buster.name, v:`busted ${buster.busts}×`} : null,
     {i:'🎲', t:'Rounds played', n:String(G.round), v:`to ${G.target}`},
   ].filter(Boolean);
-  app.innerHTML = `<div class="over" style="--pc:${w.color}">
+  app.innerHTML = `<div class="over ${ranked.length > 5 ? 'many' : ''}" style="--pc:${w.color}">
     <div class="trophy">🏆</div>
     <div class="winner">${esc(w.name)}</div>
     <p class="wsub">wins with <b>${w.total}</b> points!</p>
@@ -1202,6 +1334,7 @@ function gameOver(){
       <button class="btn ghost" data-act="home">New game</button>
     </div>
   </div>`;
+  pace(app);
   sfx.win(); confetti(200);
   setTimeout(() => confetti(120), 1400);
 }
@@ -1210,7 +1343,8 @@ function gameOver(){
 function openMenu(view = 'main'){
   const toggles = `
     <div class="tog">Sound effects<button class="switch ${S.sound ? 'on' : ''}" data-m="sound" aria-label="Sound"></button></div>
-    <div class="tog"><span>Show bust odds<small>Card-counting helper on your turn</small></span><button class="switch ${S.odds ? 'on' : ''}" data-m="odds" aria-label="Bust odds"></button></div>`;
+    <div class="tog"><span>Show bust odds<small>Card-counting helper on your turn</small></span><button class="switch ${S.odds ? 'on' : ''}" data-m="odds" aria-label="Bust odds"></button></div>
+    ${speedHTML('data-speed')}`;
   let body;
   if (view === 'scores') {
     const rounds = G.players[0].history.length;
@@ -1267,14 +1401,15 @@ function renderSetup(){
   const fan = [{t:'num', v:3}, {t:'act', v:'freeze'}, {t:'num', v:7}, {t:'mod', v:'x2'}, {t:'num', v:12}];
   let leader = null;
   if (saved) leader = saved.players.slice().sort((a, b) => b.total - a.total)[0];
-  app.innerHTML = `<div class="setup">
+  app.innerHTML = `<div class="setup"><div class="setup-hero">
     <div class="logo"><span class="l-flip">Flip</span><span class="l-7">7</span></div>
     <p class="tagline">Push your luck. Never flip the same number twice.</p>
     <div class="fan" id="fan">${fan.map((c, k) => cardHTML(c)).join('')}</div>
+    </div><div class="setup-main">
     ${saved ? `<div class="panel cont"><p>Game in progress · <b>${esc(leader.name)}</b> leads with <b>${leader.total}</b></p><button class="btn sun" data-act="continue">Continue</button></div>` : ''}
     <div class="panel">
       <h3>Players</h3>
-      <p class="hint">One phone, passed around the table. Order = seating order.</p>
+      <p class="hint">One phone or tablet, passed around the table. Order = seating order.</p>
       <div class="plist">${S.names.map((n, i) => `<div class="prow" style="--pc:${PCOLORS[i % PCOLORS.length]}">
         <span class="pdot"></span><input maxlength="14" value="${esc(n)}" placeholder="Player ${i + 1}" data-i="${i}" autocomplete="off" enterkeyhint="next">
         ${S.names.length > 2 ? `<button class="x" data-act="rm" data-i="${i}" aria-label="Remove">×</button>` : ''}</div>`).join('')}</div>
@@ -1284,13 +1419,14 @@ function renderSetup(){
         <div>
           <div class="tog"><span>Show bust odds<small>Card-counting helper on your turn</small></span><button class="switch ${S.odds ? 'on' : ''}" data-act="tog" data-k="odds" aria-label="Bust odds"></button></div>
           <div class="tog">Sound effects<button class="switch ${S.sound ? 'on' : ''}" data-act="tog" data-k="sound" aria-label="Sound"></button></div>
+          ${speedHTML('data-speed')}
         </div>
       </div>
       <button class="btn go" data-act="start">Deal 'em!</button>
     </div>
     <details class="panel rules"><summary>How to play</summary><div class="rbody">${RULES}</div></details>
     <a class="back-link" href="./">← All games</a>
-  </div>`;
+  </div></div>`;
   fanLayout(false);
 }
 function fanLayout(open){
@@ -1304,6 +1440,12 @@ function fanLayout(open){
 }
 
 /* ================= EVENTS ================= */
+document.addEventListener('input', e => {
+  if (!e.target.matches('[data-speed]')) return;
+  S.speed = Math.round(+e.target.value * 10) / 10; saveSettings();
+  const v = e.target.parentNode.querySelector('.spd-v');
+  if (v) v.textContent = speedLabel(S.speed);
+});
 app.addEventListener('input', e => {
   if (e.target.matches('.prow input')) { S.names[+e.target.dataset.i] = e.target.value; saveSettings(); }
 });
@@ -1372,6 +1514,8 @@ app.addEventListener('click', e => {
   }
 });
 document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && menu.innerHTML) { menu.innerHTML = ''; return; }
+  if (e.key === 'Escape' && G && G.view !== null && !modal.innerHTML) { G.view = null; render(); return; }
   if (!G || !G.ask || modal.innerHTML || menu.innerHTML || e.target.matches('input')) return;
   if (e.key === 'h' || e.key === 'f' || e.key === ' ') { e.preventDefault(); answer('hit'); }
   if (e.key === 's') answer('stay');
